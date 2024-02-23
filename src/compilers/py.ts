@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 
 const pyCompiler = (input: string, file: string) => {
     return new Promise((resolve, reject) => {
-        const pythonProcess = spawn('python', [file]);
+        const pythonProcess = spawn('python3', [file]);
         let time = Date.now();
         let outputData = '';
         setTimeout(() => {

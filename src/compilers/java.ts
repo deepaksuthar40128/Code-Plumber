@@ -2,11 +2,11 @@ import { spawn } from 'child_process';
 
 const javaCompiler = (input: string, file: string) => {
     return new Promise((resolve, reject) => {
-        const pythonProcess = spawn('java', [file]);
+        const javaProcess = spawn('java', [file]);
         let time = Date.now();
         let outputData = '';
         setTimeout(() => {
-            pythonProcess.kill();
+            javaProcess.kill();
             resolve({
                 success: true,
                 error: true,
@@ -15,15 +15,15 @@ const javaCompiler = (input: string, file: string) => {
             });
         }, 3000);
 
-        pythonProcess.stdin.write(input);
-        pythonProcess.stdin.end();
+        javaProcess.stdin.write(input);
+        javaProcess.stdin.end();
 
-        pythonProcess.stdout.on('data', (data) => {
+        javaProcess.stdout.on('data', (data) => {
             outputData += data;
         });
 
         let isError: boolean = false;
-        pythonProcess.on('close', () => {
+        javaProcess.on('close', () => {
             resolve({
                 success: true,
                 error: isError,
@@ -33,7 +33,7 @@ const javaCompiler = (input: string, file: string) => {
             });
         });
 
-        pythonProcess.stderr.on('data', (data) => {
+        javaProcess.stderr.on('data', (data) => {
             isError = true;
             outputData += data;
         });
