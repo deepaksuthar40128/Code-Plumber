@@ -27,10 +27,23 @@
     content="Code Plumber is a free online code editor that lets you write, run, and share code in C++, C, Python, Java, HTML, CSS, and JavaScript instantly. No downloads or setups required!  Auto Complete with suggestions and Formatters" />
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:image" content="/icons/favicon-32x32.png" />
+  <link rel="manifest" href="/manifest/manifest.json">
 </head>
 
 <body>
   <div id="root"></div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').then(function (registration) { 
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function (err) { 
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
