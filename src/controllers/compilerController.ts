@@ -4,12 +4,7 @@ import path from 'path'
 import cppCompiler from "../compilers/cpp";
 import pyCompiler from "../compilers/py";
 import javaCompiler from "../compilers/java";
-
-
-const randomGen = (): string => {
-  let a = Date.now();
-  return 'code' + a.toString() + 'edoc';
-}
+import cCompiler from "../compilers/c";
 
 const extensionMapper = (language: string): string => {
   switch (language) {
@@ -26,10 +21,6 @@ const extensionMapper = (language: string): string => {
   }
 }
 
-const handleRemoveFile = (fileName: string): void => {
-
-}
-
 export const runCode = async (req: Request, res: Response) => {
   const { language, code, input } = req.body;
   const cleanedInput: string = input.replace(/^\s+/gm, '').replace(/\s+/g, ' ');
@@ -39,13 +30,17 @@ export const runCode = async (req: Request, res: Response) => {
   }
 
   try {
-    const codeFileName = path.resolve(path.resolve() + '/runEnv/code/' + randomGen() + extensionMapper(language));
+    const codeFileName = path.resolve(path.resolve() + '/runEnv/code/Main'+ extensionMapper(language));
     let wsCode = fs.createWriteStream(codeFileName);
     wsCode.write(code);
     wsCode.end();
     wsCode.on('close', async () => {
-      if (language === 'cpp' || language === 'c') {
+      if (language === 'cpp') {
         let result = await cppCompiler(cleanedInput, codeFileName);
+        res.status(200).json(result);
+      }
+      else if (language === 'c') {
+        let result = await cCompiler(cleanedInput, codeFileName);
         res.status(200).json(result);
       }
       else if (language === 'python') {
@@ -63,9 +58,9 @@ export const runCode = async (req: Request, res: Response) => {
           message: "Unsupported Language",
           time: 0
         });
-      }
+      } 
     });
-  } catch (error) {
+  } catch (error) { 
     return res.status(500).send({ message: "Error saving code", error });
   }
 }

@@ -13,7 +13,7 @@ const cppCompiler = (input: string, file: string) => {
                     time: 0
                 });
             }
-            if(stderr){
+            if (stderr) {
                 resolve({
                     success: true,
                     error: true,
@@ -22,6 +22,7 @@ const cppCompiler = (input: string, file: string) => {
                     time: 0
                 });
             }
+
             //execute .exe file 
             const childProcess = spawn(`${executableFileName}`);
             let time = Date.now();
