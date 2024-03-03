@@ -1,8 +1,29 @@
-import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronUp,
+    Trash2
+} from "lucide-react";
 import { Button } from "./ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger
+} from "./ui/tooltip";
 
-const Output = ({ controlls, error, executionTime, output, setOutput }: { controlls: { inputOpen: boolean, setInputOpen: React.Dispatch<React.SetStateAction<boolean>> }, error: string, executionTime: number, output: string, setOutput: React.Dispatch<React.SetStateAction<string>> }) => {
+
+
+const Output = ({ controlls, error, executionTime, output, setOutput }:
+    {
+        controlls: {
+            inputOpen: boolean,
+            setInputOpen: React.Dispatch<React.SetStateAction<boolean>>
+        },
+        error: string,
+        executionTime: number,
+        output: string,
+        setOutput: React.Dispatch<React.SetStateAction<string>>
+    }) => {
     const formatedOutput = formatOutput(output);
     return (
         <div className="relative w-full h-full">
@@ -59,7 +80,6 @@ const Output = ({ controlls, error, executionTime, output, setOutput }: { contro
     )
 }
 export default Output;
-
 
 
 const formatOutput = (output: string): string[] => {

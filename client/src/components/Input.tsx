@@ -1,11 +1,32 @@
 import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
-import { ChevronDown, ChevronUp, Loader2, Play, Trash2 } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronUp,
+    Loader2,
+    Play, Trash2
+} from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger
+} from "./ui/tooltip";
 
-const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: { controlls: { outputOpen: boolean, setOutputOpen: React.Dispatch<React.SetStateAction<boolean>> }, setRunCodeStatus: React.Dispatch<React.SetStateAction<boolean>>, isLoading: boolean, setInput: React.Dispatch<React.SetStateAction<string>> }) => {
+
+
+
+const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: {
+    controlls: {
+        outputOpen: boolean,
+        setOutputOpen: React.Dispatch<React.SetStateAction<boolean>>
+    },
+    setRunCodeStatus: React.Dispatch<React.SetStateAction<boolean>>,
+    isLoading: boolean,
+    setInput: React.Dispatch<React.SetStateAction<string>>
+}) => {
     const inputRef = useRef(null);
     const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage);
     useEffect(() => {
@@ -23,14 +44,12 @@ const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: { controlls
         }
     }
 
-    const handleClick = () => {
-        setRunCodeStatus(true);
-    }
     return (
         <div className="relative w-full h-full">
             <p className=" border-b-2 border-l-2 border-gray-500 flex items-center justify-center sticky top-0 w-full text-xl text-center h-[50px]">Input</p>
-            <textarea ref={inputRef} onKeyUp={(e) => setInput((e.target as HTMLTextAreaElement).value)} style={{ outline: 'none', border: 'none' }} className="resize-none p-2 bg-transparent scroll-0 overflow-auto max-h-[calc(100%-100px)] w-full h-full">
-
+            <textarea ref={inputRef} onKeyUp={(e) => setInput((e.target as HTMLTextAreaElement).value)}
+                style={{ outline: 'none', border: 'none' }}
+                className="resize-none p-2 bg-transparent scroll-0 overflow-auto max-h-[calc(100%-100px)] w-full h-full">
             </textarea>
             <div className="border-t-2 pl-2 border-gray-500 pr-4 h-[50px] w-full flex justify-between items-center gap-2">
                 <TooltipProvider>
@@ -66,7 +85,7 @@ const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: { controlls
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button size="icon" onClick={handleClick} disabled={isLoading} variant={"success"}>
+                                <Button size="icon" onClick={() => setRunCodeStatus(true)} disabled={isLoading} variant={"success"}>
                                     {isLoading ? <Loader2 className="animate-spin" /> : <Play size={18} />}
                                 </Button>
                             </TooltipTrigger>

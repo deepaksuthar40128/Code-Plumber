@@ -22,8 +22,9 @@ export default function CodeEditor({ autoCompletion }: { autoCompletion: boolean
     (state: RootState) => state.compilerSlice.code
   );
   const dispatch = useDispatch();
+  const { theme } = useTheme();
 
-  let timerId: any;
+  let timerId: NodeJS.Timeout;
   const onChange = (value: string) => {
     clearTimeout(timerId);
     timerId = setTimeout(() => {
@@ -49,7 +50,6 @@ export default function CodeEditor({ autoCompletion }: { autoCompletion: boolean
   };
 
   const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
-  const { theme } = useTheme();
   return (
     <CodeMirror
       value={fullCode[currentLanguage]}

@@ -7,14 +7,7 @@ import { CalendarIcon } from "lucide-react";
 export default function Header() {
   const [status, setStatus] = useState(true);
   const [showStatus, setShowStatus] = useState(false);
-  const onlineEvent = () => {
-    setShowStatus(true);
-    setStatus(true);
-  }
-  const offlineEvent = () => {
-    setShowStatus(true);
-    setStatus(false);
-  }
+
   let timerId: NodeJS.Timeout;
   useEffect(() => {
     if (showStatus) {
@@ -25,6 +18,15 @@ export default function Header() {
     }
   }, [showStatus])
 
+
+  const onlineEvent = () => {
+    setShowStatus(true);
+    setStatus(true);
+  }
+  const offlineEvent = () => {
+    setShowStatus(true);
+    setStatus(false);
+  }
   useEffect(() => {
     window.addEventListener('online', onlineEvent);
     window.addEventListener('offline', offlineEvent);

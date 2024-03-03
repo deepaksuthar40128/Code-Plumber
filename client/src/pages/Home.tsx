@@ -6,7 +6,7 @@ export default function Home() {
       <div className="w-full text-gray-800 dark:text-white text-center flex-col gap-3 pb-8">
         <h1 className=" pt-8 pb-2 text-6xl font-bold">Code Plumber</h1>
         <p className=" text-gray-500 text-center">
-          Compiler Code on the go and share it with your friends
+          An online code compiler
         </p>
       </div>
       <div >

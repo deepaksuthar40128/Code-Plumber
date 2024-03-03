@@ -14,27 +14,72 @@ import {
 } from "@/redux/slices/compilerSlice";
 import { RootState } from "@/redux/store";
 import { Button } from "./ui/button";
-import { ChevronLeft, ChevronRight, ChevronsLeftRight, ClipboardCheck, Copy, Download, Send, Settings, Trash2 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeftRight,
+  ClipboardCheck,
+  Copy, Download,
+  Send, Settings,
+  Trash2
+} from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "./ui/popover";
 import { Input } from "./ui/input";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "./ui/dropdown-menu";
 import { ThemeMaper } from "./CodeEditor";
 import { Theme, useTheme } from "./theme-provider";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "./ui/tooltip";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 
-export default function HelperHeader({ data }: { data: { expendEditor: boolean, setExpendEditor: React.Dispatch<React.SetStateAction<boolean>>, autoCompletion: boolean, setAutoCompletion: React.Dispatch<React.SetStateAction<boolean>> } }) {
+
+
+
+
+export default function HelperHeader({ data }: {
+  data: {
+    expendEditor: boolean,
+    setExpendEditor: React.Dispatch<React.SetStateAction<boolean>>,
+    autoCompletion: boolean,
+    setAutoCompletion: React.Dispatch<React.SetStateAction<boolean>>
+  }
+}) {
+
   const [snipitName, setSnipitName] = useState('');
   const [snipitsList, setsnipitsList] = useState({});
   const [compileMachine, setCompileMachine] = useState('server');
+  const [copied, setCopied] = useState(false);
   const dispatch = useDispatch();
   const currentLanguage = useSelector(
     (state: RootState) => state.compilerSlice.currentLanguage
   );
   let code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
+  const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
+  const { theme, setTheme } = useTheme();
+
+
+
+
+
   const handleDownload = () => {
     let codeBlob = new Blob([code]);
     let url = URL.createObjectURL(codeBlob);
@@ -43,6 +88,7 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
     a.setAttribute('download', `${currentLanguage}-Plumber${mapExtension(currentLanguage)}`);
     a.click()
   }
+
   const handleShare = () => {
     const shareData = {
       title: "Code Plumber",
@@ -50,6 +96,22 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
     };
     navigator.share(shareData);
   }
+
+  let copyId: NodeJS.Timeout;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    clearTimeout(copyId);
+    copyId = setTimeout(() => {
+      setCopied(false);
+    }, 5000)
+  }
+
+
+
+
+
+  //Snipit
   const handleSnipitAdd = () => {
     let snipits = localStorage.getItem('snipits');
     let parsedSnipits: { [key: string]: string } = {};
@@ -62,6 +124,55 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
     toast.success("Snipit Added Successfully");
     setSnipitName('');
   }
+
+  const removeSnipit = (snipit: string) => {
+    let snipits = localStorage.getItem('snipits');
+    if (snipits) {
+      let parsedSnipits = JSON.parse(snipits);
+      delete parsedSnipits[snipit];
+      setsnipitsList(parsedSnipits);
+      localStorage.setItem('snipits', JSON.stringify(parsedSnipits));
+    }
+  }
+
+  const loadSnipitCode = React.useCallback((value: string) => {
+    dispatch(updateCodeValue(value));
+    localStorage.setItem(`currentCode-${currentLanguage}`, value);
+  }, []);
+
+
+
+
+  //UI Menu
+  const changeFontSize = (value: string) => {
+    dispatch(updateTheme(['fontSize', value]))
+  }
+  const changeTheme = (value: Theme) => {
+    setTheme(value as Theme)
+  }
+  const handleExpendEditor = () => {
+    data.setExpendEditor(!data.expendEditor);
+  }
+  const handleAutoCompletionChange = (checked: boolean) => {
+    let config = localStorage.getItem('editor-config');
+    let parsedConfig: { [key: string]: string | boolean } = {};
+    if (config) {
+      parsedConfig = JSON.parse(config) as { [key: string]: string | boolean };
+    }
+    parsedConfig.autoComplete = checked;
+    localStorage.setItem('editor-config', JSON.stringify(parsedConfig));
+    data.setAutoCompletion(checked);
+  }
+  const handleMachineChange = (value: string) => {
+    localStorage.setItem('compile-machine', value);
+    setCompileMachine(value);
+    setTimeout(() => {
+      location.reload();
+    }, 1000);
+  }
+
+
+  //Load intial Configs
   useEffect(() => {
     let snipits = localStorage.getItem('snipits');
     if (snipits) {
@@ -85,57 +196,8 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
       setCompileMachine('server');
     }
   }, [])
-  const onChange = React.useCallback((value: string) => {
-    dispatch(updateCodeValue(value));
-    localStorage.setItem(`currentCode-${currentLanguage}`, value);
-  }, []);
-  const removeSnipit = (snipit: string) => {
-    let snipits = localStorage.getItem('snipits');
-    if (snipits) {
-      let parsedSnipits = JSON.parse(snipits);
-      delete parsedSnipits[snipit];
-      setsnipitsList(parsedSnipits);
-      localStorage.setItem('snipits', JSON.stringify(parsedSnipits));
-    }
-  }
-  const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
-  const changeFontSize = (value: string) => {
-    dispatch(updateTheme(['fontSize', value]))
-  }
-  const { theme, setTheme } = useTheme();
-  const changeTheme = (value: Theme) => {
-    setTheme(value as Theme)
-  }
-  const handleExpendEditor = () => {
-    data.setExpendEditor(!data.expendEditor);
-  }
-  const handleAutoCompletionChange = (checked: boolean) => {
-    let config = localStorage.getItem('editor-config');
-    let parsedConfig: { [key: string]: string | boolean } = {};
-    if (config) {
-      parsedConfig = JSON.parse(config) as { [key: string]: string | boolean };
-    }
-    parsedConfig.autoComplete = checked;
-    localStorage.setItem('editor-config', JSON.stringify(parsedConfig));
-    data.setAutoCompletion(checked);
-  }
-  const [copied, setCopied] = useState(false);
-  let copyId: NodeJS.Timeout;
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    clearTimeout(copyId);
-    copyId = setTimeout(() => {
-      setCopied(false);
-    }, 5000)
-  }
-  const handleMachineChange = (value: string) => {
-    localStorage.setItem('compile-machine', value);
-    setCompileMachine(value);
-    setTimeout(() => {
-      location.reload();
-    }, 1000);
-  }
+
+
   return (
     <div className="__helper_header h-[50px] bg-gray-200 dark:bg-gray-800 border-2 border-b-0 text-gray-800 dark:text-white p-2 flex justify-between items-center">
       <div className="__btn_container flex gap-1">
@@ -180,7 +242,8 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
             </div>
             <div className="mb-4">
               <DropdownMenu>
-                <p className="flex items-center justify-between cursor-pointer my-1"><span>Themes <span className="text-gray-500 text-sm">({theme.split('-').join(' ')})</span></span>
+                <p className="flex items-center justify-between cursor-pointer my-1">
+                  <span>Themes <span className="text-gray-500 text-sm">({theme.split('-').join(' ')})</span></span>
                   <DropdownMenuTrigger asChild>
                     <span className="flex" ><ChevronRight size={15} className="inline" /></span>
                   </DropdownMenuTrigger>
@@ -238,9 +301,15 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
               {Object.entries(snipitsList).length ?
                 Object.entries(snipitsList).map((snipit, index) => {
                   return (
-                    <p className="flex items-center justify-between cursor-pointer my-1" key={index}><span onClick={() => onChange(snipit[1] as string)}>{snipit[0]} </span><span className="flex" onClick={() => { removeSnipit(snipit[0]) }}><Trash2 size={15} className="text-red-500 inline" /></span> </p>
+                    <p className="flex items-center justify-between cursor-pointer my-1" key={index}>
+                      <span onClick={() => loadSnipitCode(snipit[1] as string)}>{snipit[0]} </span>
+                      <span className="flex" onClick={() => { removeSnipit(snipit[0]) }}>
+                        <Trash2 size={15} className="text-red-500 inline" />
+                      </span>
+                    </p>
                   )
-                }) : <p className="text-gray-400 text-center justify-between cursor-pointer my-1"> No Snipits Found!</p>
+                }) :
+                <p className="text-gray-400 text-center justify-between cursor-pointer my-1"> No Snipits Found!</p>
               }
             </div>
           </PopoverContent>

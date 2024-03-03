@@ -33,6 +33,9 @@ import {
 } from "@/components/ui/context-menu"
 import { Theme, useTheme } from "@/components/theme-provider";
 
+
+
+
 export default function Compiler() {
   const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage);
   const code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
@@ -49,6 +52,11 @@ export default function Compiler() {
   const [runCodeStatus, setRunCodeStatus] = useState(false);
   const dispatch = useDispatch();
   const { theme, setTheme } = useTheme();
+
+
+
+
+// Run Code
   const handleRun = async () => {
     try {
       if (expendEditor) setExpendEditor(value => !value);
@@ -76,6 +84,18 @@ export default function Compiler() {
     }
   }
 
+  useEffect(() => {
+    if (runCodeStatus) {
+      localStorage.setItem(`currentInput-${currentLanguage}`, input);
+      handleRun();
+    }
+  }, [runCodeStatus])
+
+
+
+
+
+  // Format Code
   const formateCode = () => {
     if (['cpp', 'c', 'javascript', 'java'].includes(currentLanguage)) {
       let formattedCode = formatCppCode(code);
@@ -88,40 +108,37 @@ export default function Compiler() {
     }
   }
 
+
+  //Keyboard Listeners
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'j' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      setExpendEditor((expendEditor) => !expendEditor);
+    }
+    if (e.key === 'b' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      setOutputOpen((outputOpen) => !outputOpen);
+    }
+    if (e.key === 'F' && e.shiftKey && e.altKey) {
+      e.preventDefault();
+      formateCode();
+    }
+    if (e.key === 'R' && e.shiftKey && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      setRunCodeStatus(true);
+    }
+  };
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'j' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        setExpendEditor((expendEditor) => !expendEditor);
-      }
-      if (e.key === 'b' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        setOutputOpen((outputOpen) => !outputOpen);
-      }
-      if (e.key === 'F' && e.shiftKey && e.altKey) {
-        e.preventDefault();
-        formateCode();
-      }
-      if (e.key === 'R' && e.shiftKey && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        setRunCodeStatus(true);
-      }
-    };
-
     window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [code]);
 
-  useEffect(() => {
-    if (runCodeStatus) {
-      localStorage.setItem(`currentInput-${currentLanguage}`, input);
-      handleRun();
-    }
-  }, [runCodeStatus])
+ 
 
+
+  // UI
   const handleFontChange = (value: string) => {
     dispatch(updateTheme(['fontSize', value]))
   }
