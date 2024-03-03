@@ -56,7 +56,7 @@ export default function Compiler() {
 
 
 
-// Run Code
+  // Run Code
   const handleRun = async () => {
     try {
       if (expendEditor) setExpendEditor(value => !value);
@@ -66,10 +66,13 @@ export default function Compiler() {
       if (res.success) {
         if (res.error) {
           setErrorMessage(res.message);
+          setOutput('');
         }
-        let data = res.data;
-        setOutput(data);
-        setExecutionTime(res.time)
+        if (res.data) {
+          let data = res.data;
+          setOutput(data);
+          setExecutionTime(res.time)
+        }
       }
       else {
         setOutput('');
@@ -135,7 +138,7 @@ export default function Compiler() {
     };
   }, [code]);
 
- 
+
 
 
   // UI

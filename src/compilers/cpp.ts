@@ -4,7 +4,7 @@ const cppCompiler = (input: string, file: string) => {
     return new Promise((resolve, reject) => {
         const executableFileName = path.resolve(path.resolve() + '/runEnv/exe/a.exe');
         exec(`g++ -o ${executableFileName} ${file} `, (error, stdout, stderr) => {
-            if (error || stderr) {
+            if (error) {
                 resolve({
                     success: true,
                     error: true,
@@ -13,7 +13,15 @@ const cppCompiler = (input: string, file: string) => {
                     time: 0
                 });
             }
-
+            if(stderr){
+                resolve({
+                    success: true,
+                    error: true,
+                    message: "Runtime error",
+                    data: error?.message,
+                    time: 0
+                });
+            }
             //execute .exe file 
             const childProcess = spawn(`${executableFileName}`);
             let time = Date.now();
