@@ -14,7 +14,7 @@ import {
 } from "@/redux/slices/compilerSlice";
 import { RootState } from "@/redux/store";
 import { Button } from "./ui/button";
-import { ChevronLeft, ChevronRight, ChevronsLeftRight, Download, Send, Settings, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeftRight, ClipboardCheck, Copy, Download, Send, Settings, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Input } from "./ui/input";
 import React, { useEffect, useState } from "react";
@@ -29,6 +29,7 @@ import { Label } from "./ui/label";
 export default function HelperHeader({ data }: { data: { expendEditor: boolean, setExpendEditor: React.Dispatch<React.SetStateAction<boolean>>, autoCompletion: boolean, setAutoCompletion: React.Dispatch<React.SetStateAction<boolean>> } }) {
   const [snipitName, setSnipitName] = useState('');
   const [snipitsList, setsnipitsList] = useState({});
+  const [compileMachine, setCompileMachine] = useState('server');
   const dispatch = useDispatch();
   const currentLanguage = useSelector(
     (state: RootState) => state.compilerSlice.currentLanguage
@@ -73,6 +74,16 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
         data.setAutoCompletion(parsedConfig.autoComplete as boolean);
       }
     }
+    let compiler = localStorage.getItem('compile-machine');
+    if (compiler) {
+      if (compiler === 'local') {
+        setCompileMachine('local');
+      }
+      else
+        setCompileMachine('server');
+    } else {
+      setCompileMachine('server');
+    }
   }, [])
   const onChange = React.useCallback((value: string) => {
     dispatch(updateCodeValue(value));
@@ -107,6 +118,23 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
     parsedConfig.autoComplete = checked;
     localStorage.setItem('editor-config', JSON.stringify(parsedConfig));
     data.setAutoCompletion(checked);
+  }
+  const [copied, setCopied] = useState(false);
+  let copyId: NodeJS.Timeout;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    clearTimeout(copyId);
+    copyId = setTimeout(() => {
+      setCopied(false);
+    }, 5000)
+  }
+  const handleMachineChange = (value: string) => {
+    localStorage.setItem('compile-machine', value);
+    setCompileMachine(value);
+    setTimeout(() => {
+      location.reload();
+    }, 1000);
   }
   return (
     <div className="__helper_header h-[50px] bg-gray-200 dark:bg-gray-800 border-2 border-b-0 text-gray-800 dark:text-white p-2 flex justify-between items-center">
@@ -173,6 +201,23 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
               </DropdownMenu>
             </div>
             <div className="mb-4">
+              <DropdownMenu>
+                <p className="flex items-center justify-between cursor-pointer my-1"><span>Machine </span>
+                  <DropdownMenuTrigger asChild>
+                    <span className="flex" ><ChevronRight size={15} className="inline" /></span>
+                  </DropdownMenuTrigger>
+                </p>
+                <DropdownMenuContent className="w-56 bg-gray-100 dark:bg-gray-900">
+                  <DropdownMenuLabel>Select Exec Machine</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup value={compileMachine} onValueChange={(value) => handleMachineChange(value)}>
+                    <DropdownMenuRadioItem value="server">Server</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="local">Local Machine</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="mb-4">
               <div className="flex items-center justify-between space-x-2">
                 <Label htmlFor="autoSuggestion" className="font-normal">Auto Suggetions</Label>
                 <Switch className={!data.autoCompletion ? "dark:bg-gray-600" : ''} checked={data.autoCompletion} onCheckedChange={(checked) => handleAutoCompletionChange(checked)} id="autoSuggestion" />
@@ -210,7 +255,7 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
               ><Download onClick={handleDownload} size={18} /></Button>
             </TooltipTrigger>
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
-              <p>Download Code</p>
+              <p>Download</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -224,14 +269,35 @@ export default function HelperHeader({ data }: { data: { expendEditor: boolean, 
               ><Send onClick={handleShare} size={18} /></Button>
             </TooltipTrigger>
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
-              <p>Share Code</p>
+              <p>Share</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="flex justify-center items-center gap-1 dark:text-gray-800 text-white"
+                variant="success"
+                size="icon"
+              >
+                {
+                  copied ?
+                    <ClipboardCheck size={18} />
+                    :
+                    <Copy onClick={handleCopy} size={18} />
+                }
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
+              <p>Copy</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
       </div>
       <div className="__tab_switcher flex justify-center items-center gap-1">
-        <small>Current Language: </small>
+        <small className="hidden sm:block">Current Language: </small>
         {
           (['html', 'css', 'javascript'].includes(currentLanguage)) ?
             < Select

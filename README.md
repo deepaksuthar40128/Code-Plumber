@@ -2,7 +2,8 @@
 
 Online IDE is a web-based integrated development environment (IDE) that supports multiple programming languages including C, C++, Python, Java, HTML, CSS, and JavaScript. It provides a convenient platform for developers to write, edit, and run code directly from their web browsers.
 
-![Online IDE Screenshot](./screenshot.png)
+<img src="https://github.com/RupeshHacker/Code-Plumber/assets/58428810/d8c31573-75a5-42c9-80ac-af034574e0b3" width="500">
+
 
 ## Features
 

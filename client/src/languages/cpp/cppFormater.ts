@@ -1,7 +1,7 @@
 function formatCppCode(code: string): string {
     let indentLevel = 0;
     let formattedCode = "";
-    for (const line of code.split("\n")) {
+    for (const line of code.split(/{\n*/).join("{\n").split("\n")) {
         const trimmedLine = line.trim();
         if (trimmedLine) {
             if (trimmedLine.endsWith("{") && trimmedLine.length > 1) {
@@ -13,7 +13,7 @@ function formatCppCode(code: string): string {
                 formattedCode += " ".repeat(indentLevel) + '{\n';
                 indentLevel += 2;
             }
-            else if (trimmedLine.endsWith("}") && trimmedLine.length > 1) { 
+            else if (trimmedLine.endsWith("}") && trimmedLine.length > 1) {
                 formattedCode += " ".repeat(indentLevel) + trimmedLine.slice(0, trimmedLine.length - 1) + '\n';
                 indentLevel -= 2;
                 formattedCode += " ".repeat(indentLevel) + '}\n';

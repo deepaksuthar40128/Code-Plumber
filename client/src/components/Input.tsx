@@ -5,10 +5,9 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
-const Input = ({ controlls, handleRun, input, isLoading, setInput }: { controlls: { outputOpen: boolean, setOutputOpen: React.Dispatch<React.SetStateAction<boolean>> }, handleRun: () => Promise<void>, input: string, isLoading: boolean, setInput: React.Dispatch<React.SetStateAction<string>> }) => {
+const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: { controlls: { outputOpen: boolean, setOutputOpen: React.Dispatch<React.SetStateAction<boolean>> }, setRunCodeStatus: React.Dispatch<React.SetStateAction<boolean>>, isLoading: boolean, setInput: React.Dispatch<React.SetStateAction<string>> }) => {
     const inputRef = useRef(null);
     const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage);
-    const currentCode = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
     useEffect(() => {
         let data = localStorage.getItem(`currentInput-${currentLanguage}`);
         if (data) {
@@ -16,20 +15,16 @@ const Input = ({ controlls, handleRun, input, isLoading, setInput }: { controlls
             setInput(data);
         }
     }, [])
-    const saveInput = () => {
-        localStorage.setItem(`currentInput-${currentLanguage}`, input);
-        localStorage.setItem(`currentcode-${currentLanguage}`, currentCode);
-    }
-    const handleClick = () => {
-        saveInput();
-        handleRun();
-    }
     const clearInput = () => {
         if (inputRef.current) {
             (inputRef.current as HTMLTextAreaElement).value = '';
             setInput('');
             localStorage.removeItem(`currentInput-${currentLanguage}`);
         }
+    }
+
+    const handleClick = () => {
+        setRunCodeStatus(true);
     }
     return (
         <div className="relative w-full h-full">

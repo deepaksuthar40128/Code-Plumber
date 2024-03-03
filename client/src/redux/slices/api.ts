@@ -1,8 +1,18 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"; 
-
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+const genrateBaseURL = (): string => {
+  let data = localStorage.getItem('compile-machine');
+  if (data) {
+    if (data === 'local') {
+      return 'http://localhost:4320'
+    }
+    else return '';
+  } else {
+    return '';
+  }
+}
 export const api = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:4000",
+    baseUrl: genrateBaseURL(),
     credentials: "include",
   }),
   endpoints: (builder) => ({

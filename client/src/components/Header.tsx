@@ -54,13 +54,13 @@ export default function Header() {
           <HoverCardContent className="w-80">
             <div className="flex justify-between space-x-4">
               <Avatar>
-                <AvatarImage src="https://avatars.githubusercontent.com/u/92250394?s=400&u=b74f4f4ccca6dc789f68a01f4ff875a00e71b485&v=4" />
-                <AvatarFallback>DS</AvatarFallback>
+                <AvatarImage src="/logo.png" />
+                <AvatarFallback>CP</AvatarFallback>
               </Avatar>
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold">Deepak Suthar</h4>
+                <h4 className="text-sm font-semibold cursor-pointer" onClick={() => window.open('https://github.com/deepaksuthar40128/Code-Plumber', "_blank")}>Code-Plumber</h4>
                 <p className="text-sm">
-                  If you like and find it usefull please star it and contribute :)
+                  If you like it and find it useful please star it and contribute :)
                 </p>
                 <div className="flex items-center pt-2">
                   <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />{" "}

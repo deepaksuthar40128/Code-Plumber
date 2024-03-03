@@ -6,10 +6,13 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: "http://localhost:5173" })); 
+app.use(cors({
+  credentials: true,
+  origin: ["http://localhost:5173","https://code-plumber.vercel.app"],
+})); 
 
 app.use("/compiler", compilerRouter); 
  
 app.listen(4000, () => {
-  console.log("http://localhost:4000");
+  console.log("http://localhost:4320");
 });
