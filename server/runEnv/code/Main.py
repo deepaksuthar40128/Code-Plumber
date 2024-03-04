@@ -1,3 +1,2 @@
-n = int(input());
-for _ in range(0,n):
-  print(_)
+# while(1):
+  print2("Jai shree ram")

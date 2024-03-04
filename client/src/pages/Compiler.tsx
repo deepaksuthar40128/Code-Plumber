@@ -63,23 +63,20 @@ export default function Compiler() {
       setErrorMessage('');
       setOutput('Running...');
       let res = await runCode({ language: currentLanguage, code, input }).unwrap();
+      setOutput('');
       if (res.success) {
         if (res.error) {
           setErrorMessage(res.message);
-          setOutput('');
         }
         if (res.data) {
-          let data = res.data;
-          setOutput(data);
-          setExecutionTime(res.time)
+          setOutput(res.data);
         }
+        setExecutionTime(res.time)
       }
       else {
-        setOutput('');
         alert(res.message)
       }
-    } catch (err) {
-      setOutput('');
+    } catch (err) { 
       toast.error('Fetch Failed! Check your Connection!');
     }
     finally {

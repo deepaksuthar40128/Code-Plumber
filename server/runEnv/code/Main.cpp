@@ -2,11 +2,10 @@
 using namespace std;
 int main()
 {
-  int n;
-  cin>>n;
-  while(n--)
+  int t;
+  cin>> t;
+  while(1)
   {
-    cout<<"Jai Shree Ram"<<endl;
-  }
-  return 0;
+    cout<<"Jai Shree Ram"<<'\n';
+  } 
 }
