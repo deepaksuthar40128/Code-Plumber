@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import {
-    ChevronDown,
-    ChevronLeft,
+    ChevronDown, 
     ChevronRight,
     ChevronUp,
     Loader2,
