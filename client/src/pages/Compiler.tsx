@@ -45,7 +45,7 @@ export default function Compiler() {
   const [error, setErrorMessage] = useState('');
   const [runCode, { isLoading }] = useRunCodeMutation();
   const [executionTime, setExecutionTime] = useState(0);
-  const [expendEditor, setExpendEditor] = useState(false);
+  const [expendEditor, setExpendEditor] = useState(window.innerWidth < 600);
   const [inputOpen, setInputOpen] = useState(false);
   const [outputOpen, setOutputOpen] = useState(false);
   const [autoCompletion, setAutoCompletion] = useState(true);
@@ -76,7 +76,7 @@ export default function Compiler() {
       else {
         alert(res.message)
       }
-    } catch (err) { 
+    } catch (err) {
       toast.error('Fetch Failed! Check your Connection!');
     }
     finally {
@@ -156,10 +156,6 @@ export default function Compiler() {
               Run
               <ContextMenuShortcut>⌘⇧R</ContextMenuShortcut>
             </ContextMenuItem>
-            <ContextMenuItem inset onClick={() => location.reload()}>
-              Reload
-              <ContextMenuShortcut>⌘R</ContextMenuShortcut>
-            </ContextMenuItem>
             <ContextMenuItem inset onClick={formateCode}>
               Format Code
               <ContextMenuShortcut>Alt⇧F</ContextMenuShortcut>
@@ -196,17 +192,9 @@ export default function Compiler() {
               </ContextMenuSubContent>
             </ContextMenuSub>
             <ContextMenuSeparator />
-            {
-              autoCompletion ?
-                <ContextMenuCheckboxItem checked onClick={() => setAutoCompletion((val) => !val)}>
-                  Auto Complition
-                </ContextMenuCheckboxItem>
-                :
-                <ContextMenuCheckboxItem onClick={() => setAutoCompletion((val) => !val)}>
-                  Auto Complition
-                </ContextMenuCheckboxItem>
-
-            }
+            <ContextMenuCheckboxItem checked={autoCompletion} onClick={() => setAutoCompletion((val) => !val)}>
+              Auto Complition
+            </ContextMenuCheckboxItem>
             <ContextMenuSeparator />
             <ContextMenuRadioGroup onValueChange={(value) => setTheme(value as Theme)} value={theme}>
               <ContextMenuLabel inset>Popular Themes</ContextMenuLabel>
@@ -232,20 +220,20 @@ export default function Compiler() {
           </ContextMenuContent>
         </ContextMenu>
       </ResizablePanel>
-      <ResizableHandle />
+      <ResizableHandle className="w-1 brightness-105 z-50" withHandle={!expendEditor} />
       {
         (['html', 'css', 'javascript'].includes(currentLanguage)) ?
-          <ResizablePanel className={`h-[calc(100dvh-60px)] w-dvw sm:w-auto ${expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
+          <ResizablePanel className={`h-[calc(100dvh-60px)] ${expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
             <RenderCode />
           </ResizablePanel>
           :
-          <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 w-dvw sm:w-auto ${expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>
+          <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 ${expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>
             <ResizablePanelGroup direction="vertical">
-              <ResizablePanel className={inputOpen ? 'hidden' : ''} defaultSize={50}>
-                <Input controlls={{ outputOpen, setOutputOpen }} setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
+              <ResizablePanel className={`min-h-40 ${inputOpen ? 'hidden' : ''}`} defaultSize={50}>
+                <Input controlls={{ setExpendEditor, outputOpen, setOutputOpen }} setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
               </ResizablePanel>
-              <ResizableHandle />
-              <ResizablePanel className={outputOpen ? 'hidden' : ''} defaultSize={50}>
+              <ResizableHandle className="w-1" withHandle />
+              <ResizablePanel className={`min-h-40 ${outputOpen ? 'hidden' : ''}`} defaultSize={50}>
                 <Output controlls={{ inputOpen, setInputOpen }} error={error} executionTime={executionTime} output={output} setOutput={setOutput} />
               </ResizablePanel>
             </ResizablePanelGroup>

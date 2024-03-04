@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import {
     ChevronDown,
+    ChevronLeft,
+    ChevronRight,
     ChevronUp,
     Loader2,
     Play, Trash2
@@ -20,6 +22,7 @@ import {
 
 const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: {
     controlls: {
+        setExpendEditor: React.Dispatch<React.SetStateAction<boolean>>,
         outputOpen: boolean,
         setOutputOpen: React.Dispatch<React.SetStateAction<boolean>>
     },
@@ -46,12 +49,15 @@ const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: {
 
     return (
         <div className="relative w-full h-full">
-            <p className=" border-b-2 border-l-2 border-gray-500 flex items-center justify-center sticky top-0 w-full text-xl text-center h-[50px]">Input</p>
+            <p className=" border-b-2 border-l-2 border-gray-500 flex items-center justify-center sticky top-0 w-full text-xl text-center h-[50px]">
+                <Button className="absolute left-2 sm:hidden" variant="secondary" onClick={() => controlls.setExpendEditor(value => !value)} size="icon"><ChevronRight /></Button>
+                Input
+            </p>
             <textarea ref={inputRef} onKeyUp={(e) => setInput((e.target as HTMLTextAreaElement).value)}
                 style={{ outline: 'none', border: 'none' }}
                 className="resize-none p-2 bg-transparent scroll-0 overflow-auto max-h-[calc(100%-100px)] w-full h-full">
             </textarea>
-            <div className="border-t-2 pl-2 border-gray-500 pr-4 h-[50px] w-full flex justify-between items-center gap-2">
+            <div className="border-t-2 pl-2 border-gray-500 pr-4 pb-[5px] h-[50px] w-full flex justify-between items-center gap-2">
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
