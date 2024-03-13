@@ -1,0 +1,23 @@
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+  int t;
+  cin>>t;
+  while(t--){
+    int a,b;
+    cin>>a>>b;
+    vector<int>v;
+    for(int i=0;i<a;i++){
+      int c;
+      cin>>c;
+      v.push_back(c);
+    }
+    sort(v.begin(),v.end());
+    int sum = 0;
+    for(int i=0;i<v.size();i++){
+      int p1 = b - v[i];
+      sum = lower_bound()
+    }
+  }
+}
+ 

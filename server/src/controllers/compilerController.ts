@@ -1,10 +1,19 @@
-import { Request, Response } from "express";
 import fs from 'fs';
 import path from 'path'
 import cppCompiler from "../compilers/cpp";
 import pyCompiler from "../compilers/py";
 import javaCompiler from "../compilers/java";
 import cCompiler from "../compilers/c";
+import { RunData } from "../routes/compilerRouter";
+
+export type RunResult = {
+  success: boolean,
+  error: boolean,
+  message: string,
+  time: number,
+  data: string,
+  statusCode: number,
+}
 
 const extensionMapper = (language: string): string => {
   switch (language) {
@@ -21,46 +30,62 @@ const extensionMapper = (language: string): string => {
   }
 }
 
-export const runCode = async (req: Request, res: Response) => {
-  const { language, code, input } = req.body;
-  const cleanedInput: string = input.replace(/^\s+/gm, '').replace(/\s+/g, ' ');
+export const runCode = (data: RunData): Promise<RunResult> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const { cleanedInput, code, language } = data;
+      const codeFileName = path.resolve(path.resolve() + '/runEnv/code/Main' + extensionMapper(language));
+      let wsCode = fs.createWriteStream(codeFileName);
 
-  if (!code || !code.length || !language.length) {
-    return res.status(200).json({ success: false, message: "Code cannot be blank!" });
-  }
+      wsCode.write(code);
+      wsCode.end();
 
-  try {
-    const codeFileName = path.resolve(path.resolve() + '/runEnv/code/Main'+ extensionMapper(language));
-    let wsCode = fs.createWriteStream(codeFileName);
-    wsCode.write(code);
-    wsCode.end();
-    wsCode.on('close', async () => {
-      if (language === 'cpp') {
-        let result = await cppCompiler(cleanedInput, codeFileName);
-        res.status(200).json(result);
-      }
-      else if (language === 'c') {
-        let result = await cCompiler(cleanedInput, codeFileName);
-        res.status(200).json(result);
-      }
-      else if (language === 'python') {
-        let result = await pyCompiler(cleanedInput, codeFileName);
-        res.status(200).json(result);
-      }
-      else if (language === 'java') {
-        let result = await javaCompiler(cleanedInput, codeFileName);
-        res.status(200).json(result);
-      }
-      else {
-        res.status(200).json({
-          success: true,
+      wsCode.on('close', async () => {
+        let result: RunResult;
+        if (language === 'cpp') {
+          result = await cppCompiler(cleanedInput, codeFileName);
+        }
+        else if (language === 'c') {
+          result = await cCompiler(cleanedInput, codeFileName);
+        }
+        else if (language === 'python') {
+          result = await pyCompiler(cleanedInput, codeFileName);
+        }
+        else if (language === 'java') {
+          result = await javaCompiler(cleanedInput, codeFileName);
+        }
+        else {
+          result = {
+            success: true,
+            error: true,
+            message: "Unsupported Language",
+            data: "Unsupported Language",
+            time: 0,
+            statusCode: 200
+          };
+        }
+        resolve(result);
+      });
+
+      wsCode.on('error', (err) => {
+        reject({
+          success: false,
+          data: "Server Error",
+          message: "Error saving code",
           error: true,
-          message: "Unsupported Language",
-          time: 0
+          time: 0,
+          statusCode: 500
         });
-      } 
-    });
-  } catch (error) { 
-    return res.status(500).send({ message: "Error saving code", error });
-  }
-}
+      });
+    } catch (error) {
+      reject({
+        success: false,
+        data: "Server Error",
+        message: "Error saving code",
+        error: true,
+        time: 0,
+        statusCode: 500
+      });
+    }
+  });
+};

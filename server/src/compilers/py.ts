@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
+import { RunResult } from '../controllers/compilerController';
 
-const pyCompiler = (input: string, file: string) => {
+const pyCompiler = (input: string, file: string): Promise<RunResult> => {
     return new Promise((resolve, reject) => {
         try {
             const pythonProcess = spawn('python3', [file]);
@@ -9,7 +10,9 @@ const pyCompiler = (input: string, file: string) => {
                     success: true,
                     error: true,
                     message: err.message,
-                    time: 0
+                    time: 0,
+                    data: "Compilation Error",
+                    statusCode: 200
                 });
             })
             let time = Date.now();
@@ -20,11 +23,13 @@ const pyCompiler = (input: string, file: string) => {
                     success: true,
                     error: true,
                     message: 'Execution Time Out',
-                    data: outputData.toString(), time: 2000
+                    data: outputData.toString(),
+                    time: 2000,
+                    statusCode: 200
                 });
             }, 2000);
-
-            pythonProcess.stdin.write(input);
+            if(input.length)
+                pythonProcess.stdin.write(input);
             pythonProcess.stdin.end();
 
             pythonProcess.stdout.on('data', (data) => {
@@ -35,8 +40,10 @@ const pyCompiler = (input: string, file: string) => {
                 resolve({
                     success: true,
                     error: false,
+                    message: "Run Successfully",
                     data: outputData.toString(),
-                    time: Date.now() - time
+                    time: Date.now() - time,
+                    statusCode: 200
                 });
             });
 
@@ -49,7 +56,9 @@ const pyCompiler = (input: string, file: string) => {
                 success: true,
                 error: true,
                 message: 'Server Error!',
-                time: 0
+                data: "Server Error",
+                time: 0,
+                statusCode: 500
             });
         }
     });

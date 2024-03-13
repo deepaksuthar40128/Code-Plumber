@@ -77,6 +77,7 @@ export default function Compiler() {
         alert(res.message)
       }
     } catch (err) {
+      setOutput('');
       toast.error('Fetch Failed! Check your Connection!');
     }
     finally {

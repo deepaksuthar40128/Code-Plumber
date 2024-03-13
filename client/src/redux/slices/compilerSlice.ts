@@ -1,3 +1,4 @@
+import Templets from "@/utils/Templates";
 import { createSlice } from "@reduxjs/toolkit";
 import { PayloadAction } from "@reduxjs/toolkit/react";
 
@@ -51,6 +52,8 @@ const compilerSlice = createSlice({
     let data = localStorage.getItem(`currentCode-${lang}`);
     if (data) {
       initialState.code[lang] = data;
+    }else{
+      initialState.code[lang] = Templets(lang);
     }
   })
 })()

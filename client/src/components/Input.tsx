@@ -52,7 +52,7 @@ const Input = ({ controlls, setRunCodeStatus, isLoading, setInput }: {
                 <Button className="absolute left-2 sm:hidden" variant="secondary" onClick={() => controlls.setExpendEditor(value => !value)} size="icon"><ChevronRight /></Button>
                 Input
             </p>
-            <textarea ref={inputRef} onKeyUp={(e) => setInput((e.target as HTMLTextAreaElement).value)}
+            <textarea spellCheck="false" ref={inputRef} onKeyUp={(e) => setInput((e.target as HTMLTextAreaElement).value)}
                 style={{ outline: 'none', border: 'none' }}
                 className="resize-none p-2 bg-transparent scroll-0 overflow-auto max-h-[calc(100%-100px)] w-full h-full">
             </textarea>
