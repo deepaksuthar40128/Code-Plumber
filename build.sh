@@ -20,5 +20,6 @@ echo "Building server..."
 tsc
 echo "Server Build complete"
 
-npm start
+npm install -g pm2
+pm2-runtime npm -- start -i max
 echo "Server Started at http://localhost:4320"

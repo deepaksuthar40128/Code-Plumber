@@ -11,6 +11,7 @@ WORKDIR /app
 
 COPY . .
 EXPOSE 4320
+EXPOSE 4330
 
 RUN tr -d '\r' < build.sh > build_unix.sh
 RUN mv build_unix.sh build.sh

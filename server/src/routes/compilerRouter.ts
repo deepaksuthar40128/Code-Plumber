@@ -1,5 +1,5 @@
 import express from "express"; 
-import { Worker, isMainThread } from 'worker_threads'
+import { Worker, isMainThread } from 'node:worker_threads'
 import { RunResult } from "../controllers/compilerController";
 
 export interface RunData {

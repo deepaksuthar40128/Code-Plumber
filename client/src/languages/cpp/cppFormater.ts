@@ -1,7 +1,7 @@
 function formatCppCode(code: string): string {
     let indentLevel = 0;
     let formattedCode = "";
-    for (const line of code.split(/{\n*/).join("{\n").split("\n")) {
+    for (const line of code.split(/\){\n*/).join("\){\n").split("\n")) {
         const trimmedLine = line.trim();
         if (trimmedLine) {
             if (trimmedLine.endsWith("{") && trimmedLine.length > 1) {
@@ -16,15 +16,17 @@ function formatCppCode(code: string): string {
             else if (trimmedLine.endsWith("}") && trimmedLine.length > 1) {
                 formattedCode += " ".repeat(indentLevel) + trimmedLine.slice(0, trimmedLine.length - 1) + '\n';
                 indentLevel -= 2;
+                indentLevel = Math.max(indentLevel,0);
                 formattedCode += " ".repeat(indentLevel) + '}\n';
             }
             else if (trimmedLine.endsWith("}")) {
                 indentLevel -= 2;
+                indentLevel = Math.max(indentLevel,0);
                 formattedCode += " ".repeat(indentLevel) + '}\n';
             }
-            else if (trimmedLine.endsWith("for") || trimmedLine.endsWith("while") || trimmedLine.endsWith("if") || trimmedLine.endsWith("else")) {
-                formattedCode += " ".repeat(indentLevel) + trimmedLine + "\n";
-            }
+            // else if (trimmedLine.endsWith("for") || trimmedLine.endsWith("while") || trimmedLine.endsWith("if") || trimmedLine.endsWith("else")) {
+            //     formattedCode += " ".repeat(indentLevel) + trimmedLine + "\n";
+            // }
             else {
                 formattedCode += " ".repeat(indentLevel) + trimmedLine + "\n";
             }

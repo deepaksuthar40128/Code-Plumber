@@ -14,7 +14,40 @@ app.use(cors({
 }));
 
 
+
+//Test github webhook 
+import SmeeClient from 'smee-client'
+import { client, computeHash } from "./controllers/redeply";
+if(!process.env.PRODUCTION){
+  const smee = new SmeeClient({
+    source: 'https://smee.io/F7bGwtNjNp8kNkjg',
+    target: 'http://localhost:4320/update-build-image',
+    logger: console
+  })
+  smee.start();
+}
+
+app.post('/update-build-image',(req:Request,res:Response)=>{
+  try{
+    if(req.body?.hook?.events?.includes('push')){ 
+      const headers = req.headers; 
+      const hash = (headers['x-hub-signature-256'] as string).split('=').pop(); 
+      const password = computeHash(JSON.stringify(req.body)); 
+      if(client && hash===password)
+        client.write('Rebuild');
+      else console.log("No listener for redeploy event!");
+      res.json({success:true,msz:"Action"});
+    }else{
+      res.json({success:true,msz:"ignore"});
+    }
+  }catch(err){
+    console.log("Error During Redeploying..."+err); 
+  }
+})
+
+
 app.use("/compiler", compilerRouter);
+
 app.use('/', (req: Request, res: Response) => {
   res.sendFile(path.resolve(__dirname + '/../../client/dist/index.html'));
 });

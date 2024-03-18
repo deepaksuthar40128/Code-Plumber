@@ -1,4 +1,4 @@
-import { exec, spawn } from "child_process";
+import { exec, spawn } from "node:child_process";
 import path from "path";
 import { RunResult } from "../controllers/compilerController";
 const cppCompiler = (input: string, file: string): Promise<RunResult> => {
@@ -45,9 +45,11 @@ const cppCompiler = (input: string, file: string): Promise<RunResult> => {
           });
         }, 1000);
         if (input.length) childProcess.stdin.end(input);
+
         childProcess.stdout.on("data", (data) => {
           if (outputData.length < 5000) outputData += data;
         });
+        
         childProcess.stdout.on("close", () => {
           resolve({
             success: true,
