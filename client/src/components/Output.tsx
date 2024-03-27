@@ -10,30 +10,32 @@ import {
     TooltipProvider,
     TooltipTrigger
 } from "./ui/tooltip";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
 
 
 
-const Output = ({ controlls, error, executionTime, output, setOutput }:
+const Output = ({ error, executionTime, output, setOutput }:
     {
-        controlls: {
-            inputOpen: boolean,
-            setInputOpen: React.Dispatch<React.SetStateAction<boolean>>
-        },
         error: string,
         executionTime: number,
         output: string,
         setOutput: React.Dispatch<React.SetStateAction<string>>
     }) => {
     const formatedOutput = formatOutput(output);
+    const dispatch = useDispatch();
+    const editorConfig = useSelector((state: RootState) => state.editorSlice)
+
     return (
         <div className="relative w-full h-full">
             <p className="border-y-2 border-gray-500 flex items-center justify-center top-0 w-full text-xl text-center h-[50px]">
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button size="icon" variant="secondary" onClick={() => { controlls.setInputOpen(!controlls.inputOpen) }} className="absolute left-2">
+                            <Button size="icon" variant="secondary" onClick={() => { dispatch(updateEditorConfig({ type: 'style', value: { type: 'inputOpen', value: !editorConfig.style.inputOpen } })) }} className="absolute left-2">
                                 {
-                                    controlls.inputOpen ?
+                                    editorConfig.style.inputOpen ?
                                         <ChevronDown />
                                         :
                                         <ChevronUp />
@@ -41,7 +43,7 @@ const Output = ({ controlls, error, executionTime, output, setOutput }:
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
-                            {controlls.inputOpen ?
+                            {editorConfig.style.inputOpen ?
                                 <p>Open Input</p>
                                 :
                                 <p>Expend Output</p>

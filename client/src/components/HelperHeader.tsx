@@ -50,23 +50,15 @@ import {
 } from "./ui/tooltip";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
+import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
 
 
 
 
-
-export default function HelperHeader({ data }: {
-  data: {
-    expendEditor: boolean,
-    setExpendEditor: React.Dispatch<React.SetStateAction<boolean>>,
-    autoCompletion: boolean,
-    setAutoCompletion: React.Dispatch<React.SetStateAction<boolean>>
-  }
-}) {
+export default function HelperHeader() {
 
   const [snipitName, setSnipitName] = useState('');
   const [snipitsList, setsnipitsList] = useState({});
-  const [compileMachine, setCompileMachine] = useState('server');
   const [copied, setCopied] = useState(false);
   const dispatch = useDispatch();
   const currentLanguage = useSelector(
@@ -74,6 +66,7 @@ export default function HelperHeader({ data }: {
   );
   let code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
   const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
+  const editorConfig = useSelector((state: RootState) => state.editorSlice)
   const { theme, setTheme } = useTheme();
 
 
@@ -151,21 +144,10 @@ export default function HelperHeader({ data }: {
     setTheme(value as Theme)
   }
   const handleExpendEditor = () => {
-    data.setExpendEditor(!data.expendEditor);
-  }
-  const handleAutoCompletionChange = (checked: boolean) => {
-    let config = localStorage.getItem('editor-config');
-    let parsedConfig: { [key: string]: string | boolean } = {};
-    if (config) {
-      parsedConfig = JSON.parse(config) as { [key: string]: string | boolean };
-    }
-    parsedConfig.autoComplete = checked;
-    localStorage.setItem('editor-config', JSON.stringify(parsedConfig));
-    data.setAutoCompletion(checked);
+    dispatch(updateEditorConfig({ type: 'style', value: { type: 'expendEditor', value:!editorConfig.style.expendEditor } }));
   }
   const handleMachineChange = (value: string) => {
-    localStorage.setItem('compile-machine', value);
-    setCompileMachine(value);
+    dispatch(updateEditorConfig({ type: 'machine', value }));
     setTimeout(() => {
       location.reload();
     }, 1000);
@@ -178,26 +160,11 @@ export default function HelperHeader({ data }: {
     if (snipits) {
       setsnipitsList(JSON.parse(snipits));
     }
-    let config = localStorage.getItem('editor-config');
-    if (config) {
-      let parsedConfig = JSON.parse(config) as { [key: string]: string | boolean };
-      if (parsedConfig.hasOwnProperty('autoComplete')) {
-        data.setAutoCompletion(parsedConfig.autoComplete as boolean);
-      }
-    }
-    let compiler = localStorage.getItem('compile-machine');
-    if (compiler) {
-      if (compiler === 'local') {
-        setCompileMachine('local');
-      }
-      else
-        setCompileMachine('server');
-    } else {
-      setCompileMachine('server');
-    }
   }, [])
 
-
+  const handleAutoComplete = (value: boolean) => {
+    dispatch(updateEditorConfig({ type: 'autoComplete', value }));
+  }
   return (
     <div className="__helper_header h-[50px] bg-gray-200 dark:bg-gray-800 border-2 border-b-0 text-gray-800 dark:text-white p-2 flex justify-between items-center">
       <div className="__btn_container flex gap-1">
@@ -273,7 +240,7 @@ export default function HelperHeader({ data }: {
                 <DropdownMenuContent className="w-56 bg-gray-100 dark:bg-gray-900">
                   <DropdownMenuLabel>Select Exec Machine</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup value={compileMachine} onValueChange={(value) => handleMachineChange(value)}>
+                  <DropdownMenuRadioGroup value={editorConfig.machine} onValueChange={handleMachineChange}>
                     <DropdownMenuRadioItem value="server">Server</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="local">Local Machine</DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
@@ -283,7 +250,7 @@ export default function HelperHeader({ data }: {
             <div className="mb-4">
               <div className="flex items-center justify-between space-x-2">
                 <Label htmlFor="autoSuggestion" className="font-normal">Auto Suggetions</Label>
-                <Switch className={!data.autoCompletion ? "dark:bg-gray-600" : ''} checked={data.autoCompletion} onCheckedChange={(checked) => handleAutoCompletionChange(checked)} id="autoSuggestion" />
+                <Switch className={!editorConfig.autoComplete ? "dark:bg-gray-600" : ''} checked={editorConfig.autoComplete} onCheckedChange={handleAutoComplete} id="autoSuggestion" />
               </div>
             </div>
             <hr className="mt-8" />
@@ -394,11 +361,11 @@ export default function HelperHeader({ data }: {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button size="icon" variant="secondary" onClick={handleExpendEditor}>{
-                  data.expendEditor ? <ChevronLeft size={20} /> : <ChevronsLeftRight size={20} />
+                  editorConfig.style.expendEditor ? <ChevronLeft size={20} /> : <ChevronsLeftRight size={20} />
                 }</Button>
               </TooltipTrigger>
               <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
-                {data.expendEditor ?
+                {editorConfig.style.expendEditor ?
                   <p>Open Console</p>
                   :
                   <p>Expend Editor</p>

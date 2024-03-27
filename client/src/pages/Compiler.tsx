@@ -32,6 +32,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { Theme, useTheme } from "@/components/theme-provider";
+import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
 
 
 
@@ -39,27 +40,39 @@ import { Theme, useTheme } from "@/components/theme-provider";
 export default function Compiler() {
   const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage);
   const code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
+  const editorConfig = useSelector((state: RootState) => state.editorSlice)
   const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [error, setErrorMessage] = useState('');
   const [runCode, { isLoading }] = useRunCodeMutation();
   const [executionTime, setExecutionTime] = useState(0);
-  const [expendEditor, setExpendEditor] = useState(window.innerWidth < 600);
-  const [inputOpen, setInputOpen] = useState(false);
-  const [outputOpen, setOutputOpen] = useState(false);
-  const [autoCompletion, setAutoCompletion] = useState(true);
   const [runCodeStatus, setRunCodeStatus] = useState(false);
   const dispatch = useDispatch();
   const { theme, setTheme } = useTheme();
 
 
 
+  // UI
+  const handleFontChange = (value: string) => {
+    dispatch(updateTheme(['fontSize', value]))
+  }
+  const handleAutoComplete = (value: boolean) => {
+    dispatch(updateEditorConfig({ type: 'autoComplete', value }));
+  }
+  const handleExpendEditor = (value: boolean) => {
+    dispatch(updateEditorConfig({ type: 'style', value: { type: 'expendEditor', value } }));
+  }
+  const handleOutputOpen = (value: boolean) => {
+    dispatch(updateEditorConfig({ type: 'style', value: { type: 'outputOpen', value } }));
+  }
+
+
 
   // Run Code
   const handleRun = async () => {
     try {
-      if (expendEditor) setExpendEditor(value => !value);
+      if (editorConfig.style.expendEditor) handleExpendEditor(false);
       setErrorMessage('');
       setOutput('Running...');
       let res = await runCode({ language: currentLanguage, code, input }).unwrap();
@@ -114,11 +127,11 @@ export default function Compiler() {
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'j' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      setExpendEditor((expendEditor) => !expendEditor);
+      handleExpendEditor(!(editorConfig.style.expendEditor));
     }
-    if (e.key === 'b' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === 'b' && (e.ctrlKey || e.metaKey) && !editorConfig.style.inputOpen) {
       e.preventDefault();
-      setOutputOpen((outputOpen) => !outputOpen);
+      handleOutputOpen(!(editorConfig.style.outputOpen))
     }
     if (e.key === 'F' && e.shiftKey && e.altKey) {
       e.preventDefault();
@@ -134,23 +147,17 @@ export default function Compiler() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [code]);
+  }, [code, editorConfig.style.outputOpen, editorConfig.style.expendEditor,!editorConfig.style.inputOpen]);
 
 
-
-
-  // UI
-  const handleFontChange = (value: string) => {
-    dispatch(updateTheme(['fontSize', value]))
-  }
 
   return (
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel className="h-[calc(100dvh-60px)] sm:min-w-[350px]" defaultSize={70}>
-        <HelperHeader data={{ expendEditor, setExpendEditor, autoCompletion, setAutoCompletion }} />
+        <HelperHeader />
         <ContextMenu>
           <ContextMenuTrigger>
-            <CodeEditor autoCompletion={autoCompletion} />
+            <CodeEditor autoCompletion={editorConfig.autoComplete} />
           </ContextMenuTrigger>
           <ContextMenuContent className="w-64">
             <ContextMenuItem inset onClick={() => setRunCodeStatus(true)}>
@@ -161,9 +168,9 @@ export default function Compiler() {
               Format Code
               <ContextMenuShortcut>Alt⇧F</ContextMenuShortcut>
             </ContextMenuItem>
-            <ContextMenuItem inset onClick={() => setExpendEditor((value) => !value)}>
+            <ContextMenuItem inset onClick={() => handleExpendEditor(!editorConfig.style.expendEditor)}>
               {
-                expendEditor
+                editorConfig.style.expendEditor
                   ?
                   'Collaps Editor'
                   :
@@ -193,7 +200,7 @@ export default function Compiler() {
               </ContextMenuSubContent>
             </ContextMenuSub>
             <ContextMenuSeparator />
-            <ContextMenuCheckboxItem checked={autoCompletion} onClick={() => setAutoCompletion((val) => !val)}>
+            <ContextMenuCheckboxItem checked={editorConfig.autoComplete} onCheckedChange={handleAutoComplete}>
               Auto Complition
             </ContextMenuCheckboxItem>
             <ContextMenuSeparator />
@@ -221,21 +228,21 @@ export default function Compiler() {
           </ContextMenuContent>
         </ContextMenu>
       </ResizablePanel>
-      <ResizableHandle className="w-1 brightness-105 z-50" withHandle={!expendEditor} />
+      <ResizableHandle className="w-1 brightness-105 z-50" withHandle={!editorConfig.style.expendEditor} />
       {
         (['html', 'css', 'javascript'].includes(currentLanguage)) ?
-          <ResizablePanel className={`h-[calc(100dvh-60px)] ${expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
+          <ResizablePanel className={`h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
             <RenderCode />
           </ResizablePanel>
           :
-          <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 ${expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>
+          <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>
             <ResizablePanelGroup direction="vertical">
-              <ResizablePanel className={`min-h-40 ${inputOpen ? 'hidden' : ''}`} defaultSize={50}>
-                <Input controlls={{ setExpendEditor, outputOpen, setOutputOpen }} setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
+              <ResizablePanel className={`min-h-40 ${editorConfig.style.inputOpen ? 'hidden' : ''}`} defaultSize={50}>
+                <Input setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
               </ResizablePanel>
               <ResizableHandle className="w-1" withHandle />
-              <ResizablePanel className={`min-h-40 ${outputOpen ? 'hidden' : ''}`} defaultSize={50}>
-                <Output controlls={{ inputOpen, setInputOpen }} error={error} executionTime={executionTime} output={output} setOutput={setOutput} />
+              <ResizablePanel className={`min-h-40 ${editorConfig.style.outputOpen ? 'hidden' : ''}`} defaultSize={50}>
+                <Output error={error} executionTime={executionTime} output={output} setOutput={setOutput} />
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
