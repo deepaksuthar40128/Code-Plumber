@@ -12,6 +12,7 @@ Online IDE is a web-based integrated development environment (IDE) that supports
 - **Themes**: Offers 9 different themes to customize the appearance.
 - **Responsive Design**: Works seamlessly on different devices and screen sizes.
 - **Syntax Highlighting**: Highlights syntax for better code readability.
+- **Live Terminal Integration**: Integrate Terminal for interactivity.
 
 ## Usage
 
