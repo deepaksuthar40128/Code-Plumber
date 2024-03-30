@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/context-menu"
 import { Theme, useTheme } from "@/components/theme-provider";
 import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
+import Terminal from "@/components/terminal";
 
 
 
@@ -59,6 +60,9 @@ export default function Compiler() {
   }
   const handleAutoComplete = (value: boolean) => {
     dispatch(updateEditorConfig({ type: 'autoComplete', value }));
+  }
+  const handleTerminalChange = (value: boolean) => {
+    dispatch(updateEditorConfig({ type: 'terminal', value }));
   }
   const handleExpendEditor = (value: boolean) => {
     dispatch(updateEditorConfig({ type: 'style', value: { type: 'expendEditor', value } }));
@@ -203,6 +207,9 @@ export default function Compiler() {
             <ContextMenuCheckboxItem checked={editorConfig.autoComplete} onCheckedChange={handleAutoComplete}>
               Auto Complition
             </ContextMenuCheckboxItem>
+            <ContextMenuCheckboxItem checked={editorConfig.terminal} onCheckedChange={handleTerminalChange}>
+              Terminal
+            </ContextMenuCheckboxItem>
             <ContextMenuSeparator />
             <ContextMenuRadioGroup onValueChange={(value) => setTheme(value as Theme)} value={theme}>
               <ContextMenuLabel inset>Popular Themes</ContextMenuLabel>
@@ -233,6 +240,11 @@ export default function Compiler() {
         (['html', 'css', 'javascript'].includes(currentLanguage)) ?
           <ResizablePanel className={`h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
             <RenderCode />
+          </ResizablePanel>
+          :
+          editorConfig.terminal?
+          <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
+            <Terminal  setRunCodeStatus={setRunCodeStatus} isLoading={isLoading}/>
           </ResizablePanel>
           :
           <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>

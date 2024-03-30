@@ -165,6 +165,10 @@ export default function HelperHeader() {
   const handleAutoComplete = (value: boolean) => {
     dispatch(updateEditorConfig({ type: 'autoComplete', value }));
   }
+  const handleTerminalChange = (value: boolean) => {
+    dispatch(updateEditorConfig({ type: 'terminal', value }));
+  }
+
   return (
     <div className="__helper_header h-[50px] bg-gray-200 dark:bg-gray-800 border-2 border-b-0 text-gray-800 dark:text-white p-2 flex justify-between items-center">
       <div className="__btn_container flex gap-1">
@@ -251,6 +255,12 @@ export default function HelperHeader() {
               <div className="flex items-center justify-between space-x-2">
                 <Label htmlFor="autoSuggestion" className="font-normal">Auto Suggetions</Label>
                 <Switch className={!editorConfig.autoComplete ? "dark:bg-gray-600" : ''} checked={editorConfig.autoComplete} onCheckedChange={handleAutoComplete} id="autoSuggestion" />
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="flex items-center justify-between space-x-2">
+                <Label htmlFor="terminal" className="font-normal">Terminal</Label>
+                <Switch className={!editorConfig.terminal ? "dark:bg-gray-600" : ''} checked={editorConfig.terminal} onCheckedChange={handleTerminalChange} id="terminal" />
               </div>
             </div>
             <hr className="mt-8" />

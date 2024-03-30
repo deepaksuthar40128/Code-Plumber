@@ -16,6 +16,11 @@
 #include<bits/stdc++.h>
 using namespace std;
 int main(){
+  int n = 1e8;
+  while(n){
+    n--;
+    cout<<"Hello2"<<endl;
+  }
   cout<<"Welcome to Code-Plumber\nStart Editing it."<<endl;
   return 0;
 } 

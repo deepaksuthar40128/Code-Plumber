@@ -1,8 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 const genrateBaseURL = (): string => {
-  let data = localStorage.getItem('compile-machine');
+  let data = localStorage.getItem('editor-config');
   if (data) {
-    if (data === 'local') {
+    let parsedData = JSON.parse(data);
+    if (parsedData.machine === 'local') {
       return 'http://localhost:4320'
     }
     else return '';
