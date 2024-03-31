@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"encoding/json"
-	"net/http"
-	"regexp"
+	"encoding/json" 
+	"net/http" 
 
 	"github.com/deepaksuthar40128/plumber/compilers"
+	"github.com/deepaksuthar40128/plumber/utils"
 )
 
 func CompilerRoutes(mux *http.ServeMux,prefix string){
@@ -14,17 +14,25 @@ func CompilerRoutes(mux *http.ServeMux,prefix string){
 
 
 func compiler(w http.ResponseWriter,r * http.Request){
-	var rawData compilers.IncomingDataType
+	var rawData utils.IncomingDataType
 	err := json.NewDecoder(r.Body).Decode(&rawData)
 	if err != nil{
 		panic("Error during data")
+	} else if len(rawData.Code)==0{
+		panic("Empty Code block")
+	} else if len(rawData.Language) == 0 {
+		panic("Language undefined");
 	}
-	re:=regexp.MustCompile(`^\s+/gm`)
-	rawData.Input = re.ReplaceAllString(rawData.Input,"");
-	re =regexp.MustCompile((`\s+`))
-	rawData.Input = re.ReplaceAllString(rawData.Input," ");
+	utils.FilterInput(&rawData.Input)
+	f,inputf:=utils.FileMaker(rawData)
+	var responseData utils.OutgoingDataType
 	switch rawData.Language {
 	case "cpp":
-		compilers.CppCompiler(rawData);
+		responseData = compilers.CppCompiler(f,inputf);
 	}
+	w.WriteHeader(responseData.StatusCode)
+	w.Header().Set("Content-Type","application/json")
+	jsonData,err:=json.Marshal(responseData)
+	w.Write(jsonData)
 }
+
