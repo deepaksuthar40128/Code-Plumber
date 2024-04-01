@@ -66,7 +66,7 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 				Success:    true,
 				Error:      false,
 				Message:    "Run successfully",
-				Data:       stdout.String(),
+				Data:       utils.BufferOverflowCheck(&stdout),
 				Time:       int(time.Since(startTime) / 1e6),
 				StatusCode: 200,
 			}
@@ -80,18 +80,7 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 				Success: true,
 				Error:   true,
 				Message: "Time Limit Exceeded",
-				Data: func() string {
-					res := stdout.String()
-					if len(res) < 1e5 {
-						return res
-					} else {
-						rune := []rune(res)
-						rune = rune[:5000]
-						res = string(rune)
-						res += "\n\n Buffer Overflow!"
-						return res
-					}
-				}(),
+				Data: utils.BufferOverflowCheck(&stdout),
 				Time:       1000,
 				StatusCode: 200,
 			}
