@@ -1,7 +1,7 @@
 package compilers
 
 import (
-	"bytes" 
+	"bytes"
 	"os"
 	"os/exec"
 	"time"
@@ -77,10 +77,10 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 			outputChannel <- res
 		case <-time.After(time.Second):
 			outputChannel <- utils.OutgoingDataType{
-				Success: true,
-				Error:   true,
-				Message: "Time Limit Exceeded",
-				Data: utils.BufferOverflowCheck(&stdout),
+				Success:    true,
+				Error:      true,
+				Message:    "Time Limit Exceeded",
+				Data:       utils.BufferOverflowCheck(&stdout),
 				Time:       1000,
 				StatusCode: 200,
 			}

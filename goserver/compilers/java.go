@@ -1,7 +1,7 @@
 package compilers
 
 import (
-	"bytes"
+	"bytes" 
 	"os"
 	"os/exec"
 	"time"
@@ -9,14 +9,14 @@ import (
 	"github.com/deepaksuthar40128/plumber/utils"
 )
 
-func PYCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
+func JAVACompiler(f *os.File, inputf *os.File)utils.OutgoingDataType {
 	defer func() {
 		f.Close()
 		inputf.Close()
 		utils.RemoveFile(f)
 		utils.RemoveFile(inputf)
 	}()
-	cmd := exec.Command("python3", f.Name())
+	cmd := exec.Command("java", f.Name())
 	var stdout bytes.Buffer
 	cmd.Stderr = &stdout
 	cmd.Stdout = &stdout
@@ -24,6 +24,7 @@ func PYCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	inputf, err := os.Open(inputf.Name())
 	if err != nil {
 		panic("Error during reopening input file")
+		
 	}
 	cmd.Stdin = inputf
 	output := make(chan utils.OutgoingDataType)
@@ -31,7 +32,7 @@ func PYCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
 			startTime := time.Now()
-			if err := cmd.Run(); err != nil {
+			if err := cmd.Run(); err != nil { 
 				nchannel <- utils.OutgoingDataType{
 					Success:    true,
 					Error:      true,

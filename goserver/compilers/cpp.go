@@ -1,7 +1,7 @@
 package compilers
 
 import (
-	"bytes" 
+	"bytes"
 	"os"
 	"os/exec"
 	"time"
@@ -10,7 +10,7 @@ import (
 )
 
 func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
-	execFile:=utils.CustomFileMaker(".out")
+	execFile := utils.CustomFileMaker(".out")
 	defer func() {
 		f.Close()
 		inputf.Close()
@@ -20,7 +20,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		utils.RemoveFile(execFile)
 	}()
 	cmd := exec.Command("g++", "-o", execFile.Name(), "./"+f.Name())
-	
+
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
@@ -53,7 +53,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
 			startTime := time.Now()
-			if err := cmd.Run(); err != nil { 
+			if err := cmd.Run(); err != nil {
 				outputChannel <- utils.OutgoingDataType{
 					Success:    true,
 					Error:      true,
@@ -79,10 +79,10 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 			outputChannel <- res
 		case <-time.After(time.Second):
 			outputChannel <- utils.OutgoingDataType{
-				Success: true,
-				Error:   true,
-				Message: "Time Limit Exceeded",
-				Data: utils.BufferOverflowCheck(&stdout),
+				Success:    true,
+				Error:      true,
+				Message:    "Time Limit Exceeded",
+				Data:       utils.BufferOverflowCheck(&stdout),
 				Time:       1000,
 				StatusCode: 200,
 			}

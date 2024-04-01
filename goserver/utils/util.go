@@ -38,6 +38,8 @@ func ExtensionMapper(language string) string {
 		return ".c"
 	case "python":
 		return ".py"
+	case "java":
+		return ".java"
 	default:
 		return ".txt"
 	}

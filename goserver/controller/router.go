@@ -48,6 +48,8 @@ func compiler(w http.ResponseWriter, r *http.Request) {
 		responseData = compilers.CCompiler(f, inputf)
 	case "python":
 		responseData = compilers.PYCompiler(f, inputf)
+	case "java":
+		responseData = compilers.JAVACompiler(f,inputf)
 	}
 	responseCreater(w, responseData)
 }
