@@ -43,7 +43,6 @@ func FilterInput(input *string) {
 
 func FileMaker(data IncomingDataType) (*os.File, *os.File) {
 	fileName := fmt.Sprint(rand.Int()) + fmt.Sprint(time.Now().UTC().UnixNano()) + "-Main" + ExtensionMapper(data.Language)
-	fmt.Println(fileName)
 	f, err := os.Create("runEnv/code/cpp/" + fileName)
 	if err != nil {
 		fmt.Println(err)
@@ -57,7 +56,26 @@ func FileMaker(data IncomingDataType) (*os.File, *os.File) {
 	if err != nil {
 		panic("Error during creating input file")
 	}
-	defer inputf.Close()
+	defer inputf.Close() 
 	inputf.Write([]byte(data.Input));
 	return f, inputf
+}
+
+
+func CustomFileMaker(fileType string)*os.File{
+	fileName := fmt.Sprint(rand.Int()) + fmt.Sprint(time.Now().UTC().UnixNano()) + "-Exe" + fileType;
+	f,err:=os.Create("runEnv/exe/"+fileName)
+	if err != nil{
+		panic("Error during creating executable file!")
+	}
+	defer f.Close()
+	return f	
+}
+
+func RemoveFile(file*os.File){
+	err:=os.Remove(file.Name())
+	if err != nil{
+		fmt.Println(err)
+		panic("Error during removing file!")
+	}
 }

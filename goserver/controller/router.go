@@ -45,6 +45,8 @@ func compiler(w http.ResponseWriter,r * http.Request){
 	switch rawData.Language {
 	case "cpp":
 		responseData = compilers.CppCompiler(f,inputf);
+	case "c":
+		responseData = compilers.CCompiler(f,inputf);
 	}
 	responseCreater(w,responseData)
 }

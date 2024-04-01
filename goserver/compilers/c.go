@@ -9,8 +9,8 @@ import (
 	"github.com/deepaksuthar40128/plumber/utils"
 )
 
-func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
-	execFile:=utils.CustomFileMaker(".out")
+func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
+	execFile := utils.CustomFileMaker(".out")
 	defer func() {
 		f.Close()
 		inputf.Close()
@@ -19,11 +19,9 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		utils.RemoveFile(inputf)
 		utils.RemoveFile(execFile)
 	}()
-	cmd := exec.Command("g++", "-o", execFile.Name(), "./"+f.Name())
-	
+	cmd := exec.Command("gcc", "-o", execFile.Name(), "./"+f.Name())
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
-
 	if err := cmd.Run(); err != nil {
 		return utils.OutgoingDataType{
 			Success:    true,
@@ -37,7 +35,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	inputf.Close()
 	inputf, err := os.Open(inputf.Name())
 	if err != nil {
-		panic("Error opening input file")
+		panic("Error during reopening of file!")
 	}
 
 	cmd = exec.Command(execFile.Name())
@@ -53,7 +51,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
 			startTime := time.Now()
-			if err := cmd.Run(); err != nil { 
+			if err := cmd.Run(); err != nil {
 				outputChannel <- utils.OutgoingDataType{
 					Success:    true,
 					Error:      true,
@@ -90,7 +88,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 						rune := []rune(res)
 						rune = rune[:5000]
 						res = string(rune)
-						res+="\n\n Buffer Overflow!"
+						res += "\n\n Buffer Overflow!"
 						return res
 					}
 				}(),
@@ -104,4 +102,5 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	output := <-outputChannel
 
 	return output
+
 }
