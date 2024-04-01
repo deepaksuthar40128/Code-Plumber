@@ -58,6 +58,6 @@ func FileMaker(data IncomingDataType) (*os.File, *os.File) {
 		panic("Error during creating input file")
 	}
 	defer inputf.Close()
-	inputf.Write([]byte(data.Input))
+	inputf.Write([]byte(data.Input));
 	return f, inputf
 }

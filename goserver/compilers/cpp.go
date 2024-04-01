@@ -1,40 +1,99 @@
 package compilers
 
 import (
-	"bytes"
-	"fmt"
+	"bytes" 
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/deepaksuthar40128/plumber/utils"
 )
 
 func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
-	cmd := exec.Command("g++", "-o", "./runEnv/exe/a.exe", "./"+f.Name())
+	cmd := exec.Command("g++", "-o", "./runEnv/exe/a.out", "./"+f.Name())
 
-	var stderr bytes.Buffer 
+	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println("Command execution failed:", err)
-		fmt.Println("Error details:", stderr.String())
 		return utils.OutgoingDataType{
-			Success: true,
-			Error: true,
-			Message: "Compilation error",
-			Data: func() string{ 
-				if a:=stderr.String();len(a)!=0{
-					return a;
-				}else if a:=fmt.Sprintln(err);len(a)!=0{
-					return a
-				}
-				return "Compilation error"
-			}(),
-			Time:0,
+			Success:    true,
+			Error:      true,
+			Message:    "Compilation error",
+			Data:       stderr.String(),
+			Time:       0,
 			StatusCode: 200,
-		} 
+		}
 	}
-	return utils.OutgoingDataType{
+	inputf.Close()
+	inputf, err := os.Open(inputf.Name())
+	if err != nil {
+		panic("Error opening input file")
+	}
+	defer inputf.Close()
 
-	}
+	cmd = exec.Command("./runEnv/exe/a.out")
+	cmd.Stdin = inputf
+
+	var stdout, stderrOutput bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderrOutput
+
+	outputChannel := make(chan utils.OutgoingDataType)
+
+	go func() {
+		nchannel := make(chan utils.OutgoingDataType)
+		go func() {
+			startTime := time.Now()
+			if err := cmd.Run(); err != nil { 
+				outputChannel <- utils.OutgoingDataType{
+					Success:    true,
+					Error:      true,
+					Message:    "Runtime error",
+					Data:       stderrOutput.String(),
+					Time:       int(time.Since(startTime) / 1e6),
+					StatusCode: 200,
+				}
+				return
+			}
+			nchannel <- utils.OutgoingDataType{
+				Success:    true,
+				Error:      false,
+				Message:    "Run successfully",
+				Data:       stdout.String(),
+				Time:       int(time.Since(startTime) / 1e6),
+				StatusCode: 200,
+			}
+		}()
+
+		select {
+		case res := <-nchannel:
+			outputChannel <- res
+		case <-time.After(time.Second):
+			outputChannel <- utils.OutgoingDataType{
+				Success: true,
+				Error:   true,
+				Message: "Time Limit Exceeded",
+				Data: func() string {
+					res := stdout.String()
+					if len(res) < 1e5 {
+						return res
+					} else {
+						rune := []rune(res)
+						rune = rune[:5000]
+						res = string(rune)
+						res+="\n\n Buffer Overflow!"
+						return res
+					}
+				}(),
+				Time:       1000,
+				StatusCode: 200,
+			}
+			cmd.Process.Kill()
+		}
+	}()
+
+	output := <-outputChannel
+
+	return output
 }
