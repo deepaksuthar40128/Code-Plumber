@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import {
     Loader2,
@@ -10,10 +10,11 @@ import {
     TooltipProvider,
     TooltipTrigger
 } from "./ui/tooltip";
+import { socket, terminalOutput } from "@/pages/Compiler";
 
 type colors = "red" | "yellow" | "ice" | "green" | "normal";
 type TerminalType = {
-    type: "Intput" | "Output",
+    type: "Input" | "Output",
     head: String,
     headColor: colors,
     body: String,
@@ -21,14 +22,15 @@ type TerminalType = {
 };
 
 
-const Terminal = ({ setRunCodeStatus, isLoading }: {
+const Terminal = ({ setRunCodeStatus, output, isLoading }: {
     setRunCodeStatus: React.Dispatch<React.SetStateAction<boolean>>,
+    output: terminalOutput | undefined,
     isLoading: boolean
 }) => {
     const cursurRef = useRef<HTMLElement>(null);
     const inputRef = useRef<HTMLSpanElement>(null);
     const baseTerminal: TerminalType = {
-        head: 'Welcome Principle!!',
+        head: 'Welcome to Code-Plumber!!',
         headColor: 'green',
         type: 'Output',
         body: '',
@@ -39,7 +41,7 @@ const Terminal = ({ setRunCodeStatus, isLoading }: {
     const clearInput = () => {
         setTerminalData([baseTerminal]);
     }
-    const [offInput, setOffInput] = useState<boolean>(false);
+    const [offInput, setOffInput] = useState<boolean>(true);
 
     const handleInputFocus = () => {
         if (cursurRef.current && !offInput) cursurRef.current.classList.add('animate-blink');
@@ -61,22 +63,58 @@ const Terminal = ({ setRunCodeStatus, isLoading }: {
             (inputRef.current as HTMLElement).innerHTML = '';
         }
     }
+    useEffect(() => {
+        if (output) {
+            feedOutput(output);
+        }
+    }, [output])
+
+    useEffect(() => {
+        if (!offInput) {
+            handleInputClick();
+        }
+    }, [offInput])
+
+    useEffect(() => {
+        const handleDataStream = (data: string) => {
+            if (data) feedOutput({ type: "normal", format: "Output", message: data });
+            setOffInput(false);
+        }
+        const handleDisConnect = () => {
+            feedOutput({ type: "error", format: "Output", message: "Terminal Disconnected!" });
+            setOffInput(true);
+        }
+        const handleIgnore = () => {
+            setOffInput(false);
+        }
+        socket.on('data', handleDataStream);
+        socket.on('disconnect', handleDisConnect)
+        socket.on('ignore', handleIgnore);
+        return () => {
+            socket.off('data', handleDataStream);
+            socket.off('disconnect', handleDisConnect)
+            socket.off('ignore', handleIgnore)
+        }
+    })
+
+    useEffect(()=>{
+        inputRef.current?.scrollIntoView()
+    },[terminalData])
 
     return (
         <div className="relative w-full h-full">
             <p className=" border-b-2 border-l-2 border-gray-500 flex items-center justify-center sticky top-0 w-full text-xl text-center h-[50px]">
                 Terminal
             </p>
-            <div className="overflow-auto">
+            <div className="overflow-auto h-[calc(100dvh-170px)] ml-1">
                 <div className="">
                     {
                         terminalData.map(val => {
                             return createLine(val);
                         })
                     }
-                    <p className="whitespace-normal text-left"></p>
                 </div>
-                <p className="whitespace-normal select-none w-full text-left" onClick={handleInputClick}>
+                <p className="whitespace-pre-wrap select-none w-full text-left" onClick={handleInputClick}>
                     {'>'} <span className="outline-none caret-transparent" ref={inputRef} onKeyDown={handleKeyEvent} spellCheck={false} contentEditable={!offInput} onFocus={handleInputFocus} onBlur={handleInputBlur}></span>
                     <span className={offInput ? 'cursor-not-allowed' : 'cursor-default'} ref={cursurRef}>__</span>
                 </p>
@@ -111,14 +149,42 @@ const Terminal = ({ setRunCodeStatus, isLoading }: {
     )
 
     function processCmd(cmd: string) {
+        setOffInput(true);
+        socket.emit('input', cmd);
         let line: TerminalType = {
-            type: "Intput",
+            type: "Input",
             head: "",
             body: cmd,
             headColor: 'normal',
             bodyColor: 'normal'
         }
         setTerminalData((value) => [...value, line]);
+    }
+
+    function feedOutput(output: terminalOutput): void {
+        let lines = output.message.split('\n');
+        if (lines[lines.length - 1] === '')
+            lines.pop();
+        let lineStyle: { "headColor": colors, "bodyColor": colors } = {
+            headColor: "normal",
+            bodyColor: "normal"
+        }
+        if (output.type === "error") {
+            lineStyle.bodyColor = "red"
+            lineStyle.headColor = "red"
+        } else if (output.type === 'success') {
+            lineStyle.bodyColor = "green"
+            lineStyle.headColor = "green"
+        }
+        lines.forEach(line => {
+            let formatedLine: TerminalType = {
+                type: output.format,
+                head: "",
+                body: line,
+                ...lineStyle
+            }
+            setTerminalData((value) => [...value, formatedLine]);
+        })
     }
 }
 export default Terminal;
@@ -148,9 +214,9 @@ const terminalColorResolver = (color: colors, ...args: string[]): string => {
 function createLine(val: TerminalType): JSX.Element {
     return (
         <p>
-            <span className="mr-2 text-gray-500">{val.type === 'Intput' ? '<<' : '>>'}</span>
+            <span className="mr-2 text-gray-500">{val.type === 'Input' ? '<<' : '>>'}</span>
             <span className={terminalColorResolver(val.headColor)}>{val.head}</span>
-            <span className={terminalColorResolver(val.bodyColor)}>{val.body}</span>
+            <span className={terminalColorResolver(val.bodyColor) + ' whitespace-pre-wrap'}>{val.body}</span>
         </p>
     )
 }
@@ -158,7 +224,6 @@ function createLine(val: TerminalType): JSX.Element {
 
 function setCaretPosition(element: HTMLElement) {
     try {
-
         if (element && typeof window.getSelection !== "undefined") {
             const selection = window.getSelection();
             const range = document.createRange();

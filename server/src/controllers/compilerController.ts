@@ -1,17 +1,13 @@
 import fs from 'fs';
 import path from 'path'
 import cppCompiler from "../compilers/cpp";
-import pyCompiler from "../compilers/py";
-import javaCompiler from "../compilers/java";
-import cCompiler from "../compilers/c";
-import { RunData } from "../routes/compilerRouter";
+import { RequestData } from "../routes/compilerRouter";
 
-export type RunResult = {
+export type CompileResult = {
   success: boolean,
   error: boolean,
   message: string,
-  time: number,
-  data: string,
+  file:string,
   statusCode: number,
 }
 
@@ -30,37 +26,27 @@ const extensionMapper = (language: string): string => {
   }
 }
 
-export const runCode = (data: RunData): Promise<RunResult> => {
+export const compileCode = (data: RequestData): Promise<CompileResult> => {
   return new Promise((resolve, reject) => {
     try {
-      const { cleanedInput, code, language } = data;
-      const codeFileName = path.resolve(path.resolve() + '/runEnv/code/Main' + extensionMapper(language));
+      const { code, language } = data;
+      const codeFileName = path.resolve(path.resolve() + '/runEnv/code/' + fileNameGenrator() + extensionMapper(language));
       let wsCode = fs.createWriteStream(codeFileName);
 
       wsCode.write(code);
       wsCode.end();
 
       wsCode.on('close', async () => {
-        let result: RunResult;
-        if (language === 'cpp') {
-          result = await cppCompiler(cleanedInput, codeFileName);
-        }
-        else if (language === 'c') {
-          result = await cCompiler(cleanedInput, codeFileName);
-        }
-        else if (language === 'python') {
-          result = await pyCompiler(cleanedInput, codeFileName);
-        }
-        else if (language === 'java') {
-          result = await javaCompiler(cleanedInput, codeFileName);
+        let result: CompileResult;
+        if (language === 'cpp' || language == 'c') {
+          result = await cppCompiler(codeFileName);
         }
         else {
           result = {
             success: true,
             error: true,
-            message: "Unsupported Language",
-            data: "Unsupported Language",
-            time: 0,
+            file:'',
+            message: "Unsupported Language or Interpetated Language",
             statusCode: 200
           };
         }
@@ -70,22 +56,25 @@ export const runCode = (data: RunData): Promise<RunResult> => {
       wsCode.on('error', (err) => {
         reject({
           success: false,
-          data: "Server Error",
-          message: "Error saving code",
           error: true,
-          time: 0,
+          file:'',
+          message: "Error saving code",
           statusCode: 500
         });
       });
     } catch (error) {
       reject({
         success: false,
-        data: "Server Error",
+        error: true, 
         message: "Error saving code",
-        error: true,
-        time: 0,
+        file:'',
         statusCode: 500
       });
     }
   });
 };
+
+
+export const fileNameGenrator = () => {
+  return Math.floor(12345678 + Math.random() * 10000000) + Date.now() + "-Main";
+}

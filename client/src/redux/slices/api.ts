@@ -33,10 +33,27 @@ export const api = createApi({
             body: runtime,
           };
         },
+      }),
+      compileCode: builder.mutation<
+      {
+        success: boolean,
+        message: string,
+        error:boolean,
+        file:''
+      }
+      , any>({
+        query: (runtime) => {
+          return {
+            url: "/compiler/compile",
+            method: "POST",
+            body: runtime,
+          };
+        },
       })
   }),
 });
 
 export const {
-  useRunCodeMutation
+  useRunCodeMutation,
+  useCompileCodeMutation
 } = api;
