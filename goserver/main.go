@@ -1,35 +1,72 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/http"
-	"os"
-	"path"
-	"strings"
+	"net"
 
 	"github.com/deepaksuthar40128/plumber/controller"
+	"github.com/deepaksuthar40128/plumber/utils"
 )
 
-const FSPATH = "../client/dist"
-
 func main() {
-	mux := http.NewServeMux()
-	fs := http.FileServer(http.Dir(FSPATH))
-	controller.CompilerRoutes(mux, "/compiler")
-	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			fullPath := FSPATH + strings.TrimPrefix(path.Clean(r.URL.Path), "/")
-			_, err := os.Stat(fullPath)
+	serverAddr := "127.0.0.1:4555"
+
+	conn, err := net.Dial("tcp", serverAddr)
+	if err != nil {
+		fmt.Println("Error connecting to server:", err)
+		return
+	}
+	defer conn.Close()
+
+	fmt.Println("Connected to server on", serverAddr)
+
+	startupMsg := map[string]string{"type": "Startup", "service": "Go"}
+	err = sendJSONMessage(conn, startupMsg)
+	if err != nil {
+		fmt.Println("Error sending startup message:", err)
+		return
+	}
+
+	// Listen for incoming messages
+	for {
+		var msg map[string]interface{}
+		err := receiveJSONMessage(conn, &msg)
+		if err != nil {
+			fmt.Println("Error receiving message:", err)
+			return
+		} 
+
+		if msg["type"] == "Run" {
+			dataMap := msg["data"].(map[string]interface{})
+			incomingdata := utils.IncomingDataType{
+				Code:     dataMap["code"].(string),
+				Input:    dataMap["input"].(string),
+				Language: dataMap["language"].(string),
+			}
+			response := map[string]interface{}{
+				"type": "result",
+				"id":   msg["id"],
+				"data": controller.Compiler(incomingdata),
+			}
+			err := sendJSONMessage(conn, response)
 			if err != nil {
-				if !os.IsNotExist(err) {
-					panic("Something wrong during file lookup!")
-				}
-				r.URL.Path = "/"
+				fmt.Println("Error sending response:", err)
+				return
 			}
 		}
-		fs.ServeHTTP(w, r)
-	}))
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		fmt.Println("err during listening")
 	}
+}
+func sendJSONMessage(conn net.Conn, msg interface{}) error {
+	jsonData, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	_, err = conn.Write(append(jsonData, "$end$"...))
+	return err
+}
+
+func receiveJSONMessage(conn net.Conn, msg interface{}) error {
+	decoder := json.NewDecoder(conn)
+	return decoder.Decode(msg)
 }

@@ -185,9 +185,9 @@ export default function Compiler() {
       });
       socket.emit("initiate", JSON.stringify({ file: compiledFilePath }))
     }
-    socket.on('connect', handleConnect); 
+    socket.on('connect', handleConnect);
     return () => {
-      socket.off('connect', handleConnect) 
+      socket.off('connect', handleConnect)
     }
   }, [compiledFilePath])
 
@@ -234,6 +234,11 @@ export default function Compiler() {
     };
   }, [code, editorConfig.style.outputOpen, editorConfig.style.expendEditor, !editorConfig.style.inputOpen]);
 
+  useEffect(() => {
+    socket.disconnect();
+    if (editorConfig.terminal)
+      toast.warning('Please Dont Use Terminal if You are not dealing with iteractive problems\nThis will save your and our resources.\nThankyou\nTeam Code-Plumber')
+  }, [editorConfig.terminal])
 
 
   return (

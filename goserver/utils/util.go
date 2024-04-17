@@ -87,10 +87,12 @@ func CustomFileMaker(fileType string) *os.File {
 }
 
 func RemoveFile(file *os.File) {
-	err := os.Remove(file.Name())
-	if err != nil {
-		fmt.Println(err)
-		panic("Error during removing file!")
+	if _,err:=os.Lstat(file.Name());err==nil{
+		err := os.Remove(file.Name())
+		if err != nil {
+			fmt.Println(err)
+			panic("Error during removing file!")
+		}
 	}
 }
 

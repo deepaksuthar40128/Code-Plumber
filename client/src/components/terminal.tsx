@@ -81,6 +81,7 @@ const Terminal = ({ setRunCodeStatus, output, isLoading }: {
             setOffInput(false);
         }
         const handleDisConnect = () => {
+            socket.disconnect();
             feedOutput({ type: "error", format: "Output", message: "Terminal Disconnected!" });
             setOffInput(true);
         }
@@ -175,6 +176,10 @@ const Terminal = ({ setRunCodeStatus, output, isLoading }: {
         } else if (output.type === 'success') {
             lineStyle.bodyColor = "green"
             lineStyle.headColor = "green"
+        }
+        else if (output.type === 'warn') {
+            lineStyle.bodyColor = "yellow"
+            lineStyle.headColor = "yellow"
         }
         lines.forEach(line => {
             let formatedLine: TerminalType = {

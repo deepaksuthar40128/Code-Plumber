@@ -1,65 +1,28 @@
-import express, { Request, Response } from "express";
-import cors from "cors";
-import { compilerRouter } from "./routes/compilerRouter";
-import cookieParser from "cookie-parser";
-import path from 'node:path'
-import http from 'node:http'
-const app = express();
-import { Server } from 'socket.io'
-import { ioFunction } from "./live/terminal";
-const server = http.createServer(app)
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173"
-  }
-})
-ioFunction(io);
+import net from "node:net"
+import { Maneger } from "./routes/compilerRouter";
+import { handleSocket } from "./live/terminal";
+export const rpcServer = net.connect({
+  host: "127.0.0.1",
+  port: 4555
+}, handleConnection)
 
-
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.static(path.resolve(__dirname + '/../../client/dist/')));
-app.use(cors({
-  credentials: true,
-  origin: ["http://localhost:5173", "https://code-plumber.vercel.app"],
-}));
-
-
-
-//Test github webhook 
-import SmeeClient from 'smee-client'
-import { client, computeHash } from "./controllers/redeply";
-if (!process.env.PRODUCTION) {
-  const smee = new SmeeClient({
-    source: 'https://smee.io/F7bGwtNjNp8kNkjg',
-    target: 'http://localhost:4320/update-build-image',
-    logger: console
-  })
-  smee.start();
+function handleConnection() {
+  rpcServer.write((JSON.stringify({ type: "Startup", service: "Node" }) + '$end$'));
+  console.log("connected to servecies on 4555");
 }
 
-app.post('/update-build-image', (req: Request, res: Response) => {
-  try {
-    if (req.body?.hook?.events?.includes('push')) {
-      const headers = req.headers;
-      const hash = (headers['x-hub-signature-256'] as string).split('=').pop();
-      const password = computeHash(JSON.stringify(req.body));
-      if (client && hash === password)
-        client.write('Rebuild');
-      else console.log("No listener for redeploy event!");
-      res.json({ success: true, msz: "Action" });
-    } else {
-      res.json({ success: true, msz: "ignore" });
-    }
-  } catch (err) {
-    console.log("Error During Redeploying..." + err);
-  }
+rpcServer.on('close', () => {
+  console.log("service disconnected to 4555")
 })
 
 
-app.use("/compiler", compilerRouter);
-
-
-server.listen(4320, () => {
-  console.log("http://localhost:4320");
-});
+rpcServer.on('data', async (msz) => {
+  let data = JSON.parse(msz.toString());
+  if (data.type === 'Compile') {
+    let res = await Maneger(data.data);
+    rpcServer.write((JSON.stringify({ type: 'result', id: data.id, data: res }) + '$end$'));
+  }
+  else if (data.type === 'Socket') {
+    handleSocket(data);
+  }
+})
