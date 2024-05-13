@@ -7,14 +7,16 @@ export interface CompilerSliceStateType {
   code: { [key: string]: string }
   currentLanguage: "html" | "c" | "css" | "javascript" | "cpp" | "python" | "java";
   theme: { [key: string]: string }
+  session: string
 }
 
 const initialState: CompilerSliceStateType = {
   code: {},
-  currentLanguage: (localStorage.getItem('lastLanguage') as CompilerSliceStateType["currentLanguage"]) || "cpp",
+  currentLanguage: "cpp",
   theme: {
     fontSize: 'xl'
-  }
+  },
+  session: ''
 };
 
 const compilerSlice = createSlice({
@@ -23,39 +25,57 @@ const compilerSlice = createSlice({
   reducers: {
     updateCurrentLanguage: (state, action: PayloadAction<CompilerSliceStateType["currentLanguage"]>) => {
       state.currentLanguage = action.payload;
-      localStorage.setItem('lastLanguage', state.currentLanguage);
+      localStorage.setItem('lastLanguage-' + state.session, state.currentLanguage);
     },
     updateCodeValue: (state, action: PayloadAction<string>) => {
       state.code[state.currentLanguage] = action.payload;
     },
     updateTheme: (state, action: PayloadAction<string[]>) => {
       state.theme[action.payload[0]] = action.payload[1];
-      let localThemeSettigs = localStorage.getItem('theme');
+      let localThemeSettigs = localStorage.getItem('theme-' + state.session);
       if (localThemeSettigs) {
         let parsedLocalThemeSettings = JSON.parse(localThemeSettigs);
         parsedLocalThemeSettings.fontSize = state.theme.fontSize;
-        localStorage.setItem('theme', JSON.stringify(parsedLocalThemeSettings));
+        localStorage.setItem('theme-' + state.session, JSON.stringify(parsedLocalThemeSettings));
       } else {
-        localStorage.setItem('theme', JSON.stringify(state.theme));
+        localStorage.setItem('theme-' + state.session, JSON.stringify(state.theme));
       }
     }
   },
 });
 
 (() => {
-  let localThemeSettigs = localStorage.getItem('theme');
-  if (localThemeSettigs) {
-    let parsedLocalThemeSettings = JSON.parse(localThemeSettigs);
-    initialState.theme.fontSize = parsedLocalThemeSettings.fontSize ? parsedLocalThemeSettings.fontSize : 'xs';
-  }
-  languages.forEach(lang => {
-    let data = localStorage.getItem(`currentCode-${lang}`);
-    if (data) {
-      initialState.code[lang] = data;
-    }else{
-      initialState.code[lang] = Templets(lang);
+  let session = localStorage.getItem('last-session');
+  if (session) {
+    initialState.session = session;
+    let localThemeSettigs = localStorage.getItem('theme-' + session);
+    if (localThemeSettigs) {
+      let parsedLocalThemeSettings = JSON.parse(localThemeSettigs);
+      initialState.theme.fontSize = parsedLocalThemeSettings.fontSize ? parsedLocalThemeSettings.fontSize : 'xs';
     }
-  })
+    initialState.currentLanguage = (localStorage.getItem('lastLanguage-' + session) as CompilerSliceStateType["currentLanguage"]) || "cpp";
+    languages.forEach(lang => {
+      let data = localStorage.getItem(`currentCode-${lang}-${session}`);
+      if (data) {
+        initialState.code[lang] = data;
+      } else {
+        initialState.code[lang] = Templets(lang);
+      }
+    })
+  } else {
+    initialState.session = Date.now().toString();
+    let sessions = localStorage.getItem('sessions');
+    if (sessions) {
+      let paredSessions: string[] = JSON.parse(sessions);
+      localStorage.setItem('sessions', JSON.stringify([initialState.session, ...paredSessions]));
+    }
+    else
+      localStorage.setItem('sessions', JSON.stringify([initialState.session]));
+    localStorage.setItem('last-session', initialState.session);
+    languages.forEach(lang => {
+      initialState.code[lang] = Templets(lang);
+    })
+  }
 })()
 
 export default compilerSlice.reducer;

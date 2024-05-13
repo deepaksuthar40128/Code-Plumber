@@ -1,4 +1,6 @@
+import { RootState } from "@/redux/store";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Toaster } from "sonner";
 
 export type Theme = "Old-House" | "Android-Studio" | "Electronic" | "Basic-Light" | "Basic-Dark" | "Light" | "Dark" | "Kimbie-Red" | "Tomorrow-Night-Blue" | "system";
@@ -24,11 +26,13 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 export function ThemeProvider({
   children,
   defaultTheme = "system",
-  storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
+  const currentSession = useSelector(
+    (state: RootState) => state.compilerSlice.session
+  );
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    () => (localStorage.getItem('ui-theme-' + currentSession) as Theme) || defaultTheme
   )
 
   useEffect(() => {
@@ -50,7 +54,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
+      localStorage.setItem('ui-theme-' + currentSession, theme);
       setTheme(theme);
     },
   };

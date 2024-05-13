@@ -1,4 +1,4 @@
-const CACHE_NAME = 'code-plumber';
+const CACHE_NAME = 'code-plumber-1.0.0';
 
 const staticAssets = [
     '/c.png',
@@ -8,8 +8,9 @@ const staticAssets = [
     '/python.png'
 ];
 
-setInterval(() => {
+setInterval(() => { 
     caches.keys().then((cacheNames) => {
+        console.log(cacheNames)
         return Promise.all(
             cacheNames.map((cacheName) => {
                 if (cacheName !== CACHE_NAME) {
@@ -18,7 +19,7 @@ setInterval(() => {
             })
         );
     });
-}, 24 * 60 * 60 * 1000);
+}, 60 * 1000);
 
 self.addEventListener('install', (event) => {
     event.waitUntil(

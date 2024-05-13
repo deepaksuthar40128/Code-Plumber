@@ -38,16 +38,16 @@ const editorConfigSlice = createSlice({
                 case 'autoComplete':
                     state.autoComplete = action.payload.value as boolean;
                     break;
-                case 'style': 
-                    switch ((action.payload.value as {[key:string]:string|boolean}).type) {
+                case 'style':
+                    switch ((action.payload.value as { [key: string]: string | boolean }).type) {
                         case 'expendEditor':
-                            state.style.expendEditor = (action.payload.value as {[key:string]:string|boolean}).value as boolean
+                            state.style.expendEditor = (action.payload.value as { [key: string]: string | boolean }).value as boolean
                             break;
                         case 'inputOpen':
-                            state.style.inputOpen = (action.payload.value as {[key:string]:string|boolean}).value as boolean
+                            state.style.inputOpen = (action.payload.value as { [key: string]: string | boolean }).value as boolean
                             break;
                         case 'outputOpen':
-                            state.style.outputOpen = (action.payload.value as {[key:string]:string|boolean}).value as boolean
+                            state.style.outputOpen = (action.payload.value as { [key: string]: string | boolean }).value as boolean
                             break;
                         default:
                             break;
@@ -56,21 +56,24 @@ const editorConfigSlice = createSlice({
                 default:
                     break;
             }
-            localStorage.setItem('editor-config', JSON.stringify(state));
+            localStorage.setItem('editor-config-' + action.payload.session, JSON.stringify(state));
         }
     },
 });
 
 (() => {
-    let localConfig = localStorage.getItem('editor-config');
-    if (localConfig) {
-        let data: EditorConfigSliceType = JSON.parse(localConfig);
-        initialState.machine = data.machine; 
-        initialState.autoComplete = data.autoComplete; 
-        initialState.terminal = data.terminal; 
-        initialState.style.expendEditor = data.style.expendEditor; 
-        initialState.style.inputOpen = data.style.inputOpen; 
-        initialState.style.outputOpen = data.style.outputOpen; 
+    let session = localStorage.getItem('last-session');
+    if (session) {
+        let localConfig = localStorage.getItem('editor-config-' + session);
+        if (localConfig) {
+            let data: EditorConfigSliceType = JSON.parse(localConfig);
+            initialState.machine = data.machine;
+            initialState.autoComplete = data.autoComplete;
+            initialState.terminal = data.terminal;
+            initialState.style.expendEditor = data.style.expendEditor;
+            initialState.style.inputOpen = data.style.inputOpen;
+            initialState.style.outputOpen = data.style.outputOpen;
+        }
     }
 })()
 

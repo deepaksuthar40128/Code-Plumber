@@ -28,9 +28,10 @@ const Input = ({ setRunCodeStatus, isLoading, setInput }: {
     const inputRef = useRef(null);
     const dispatch = useDispatch();
     const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage);
+    const currentSession = useSelector((state: RootState) => state.compilerSlice.session);
     const editorConfig = useSelector((state: RootState) => state.editorSlice)
     useEffect(() => {
-        let data = localStorage.getItem(`currentInput-${currentLanguage}`);
+        let data = localStorage.getItem(`currentInput-${currentLanguage}-${currentSession}`);
         if (data) {
             if (inputRef.current) (inputRef.current as HTMLTextAreaElement).value = data;
             setInput(data);
@@ -40,15 +41,15 @@ const Input = ({ setRunCodeStatus, isLoading, setInput }: {
         if (inputRef.current) {
             (inputRef.current as HTMLTextAreaElement).value = '';
             setInput('');
-            localStorage.removeItem(`currentInput-${currentLanguage}`);
+            localStorage.removeItem(`currentInput-${currentLanguage}-${currentSession}`);
         }
     }
 
     const handleExpendEditor = (value: boolean) => {
-        dispatch(updateEditorConfig({ type: 'style', value: { type: 'expendEditor', value } }));
+        dispatch(updateEditorConfig({ type: 'style', session: currentSession, value: { type: 'expendEditor', value } }));
     }
     const handleOutputOpen = (value: boolean) => {
-        dispatch(updateEditorConfig({ type: 'style', value: { type: 'outputOpen', value } }));
+        dispatch(updateEditorConfig({ type: 'style', session: currentSession, value: { type: 'outputOpen', value } }));
     }
 
     return (

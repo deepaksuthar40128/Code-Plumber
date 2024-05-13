@@ -18,6 +18,9 @@ export default function CodeEditor({ autoCompletion }: { autoCompletion: boolean
   const currentLanguage = useSelector(
     (state: RootState) => state.compilerSlice.currentLanguage
   );
+  const currentSession = useSelector(
+    (state: RootState) => state.compilerSlice.session
+  );
   const fullCode = useSelector(
     (state: RootState) => state.compilerSlice.code
   );
@@ -29,7 +32,7 @@ export default function CodeEditor({ autoCompletion }: { autoCompletion: boolean
     clearTimeout(timerId);
     timerId = setTimeout(() => {
       dispatch(updateCodeValue(value));
-      localStorage.setItem(`currentCode-${currentLanguage}`, value);
+      localStorage.setItem(`currentCode-${currentLanguage}-${currentSession}`, value);
     }, 1000)
   };
 

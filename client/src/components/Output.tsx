@@ -26,14 +26,15 @@ const Output = ({ error, executionTime, output, setOutput }:
     const formatedOutput = formatOutput(output);
     const dispatch = useDispatch();
     const editorConfig = useSelector((state: RootState) => state.editorSlice)
-
+    const currentSession = useSelector((state: RootState) => state.compilerSlice.session);
+   
     return (
         <div className="relative w-full h-full">
             <p className="border-y-2 border-gray-500 flex items-center justify-center top-0 w-full text-xl text-center h-[50px]">
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button size="icon" variant="secondary" onClick={() => { dispatch(updateEditorConfig({ type: 'style', value: { type: 'inputOpen', value: !editorConfig.style.inputOpen } })) }} className="absolute left-2">
+                            <Button size="icon" variant="secondary" onClick={() => { dispatch(updateEditorConfig({ type: 'style', session: currentSession, value: { type: 'inputOpen', value: !editorConfig.style.inputOpen } })) }} className="absolute left-2">
                                 {
                                     editorConfig.style.inputOpen ?
                                         <ChevronDown />

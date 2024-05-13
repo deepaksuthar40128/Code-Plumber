@@ -5,7 +5,7 @@ RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
 RUN apt-get install -y nodejs
 RUN apt-get install -y build-essential
 RUN apt-get install python3.10
-RUN apt install -y openjdk-11-jdk
+RUN apt install -y openjdk-11-jdk 
 
 WORKDIR /app
 

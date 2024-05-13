@@ -43,7 +43,7 @@ export interface terminalOutput {
   format: "Input" | "Output"
 }
 
-const URL = 'http://localhost:4320'
+const URL = '/'
 export const socket = io(URL, {
   autoConnect: false
 });
@@ -55,6 +55,7 @@ export default function Compiler() {
   const code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
   const editorConfig = useSelector((state: RootState) => state.editorSlice)
   const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
+  const currentSession = useSelector((state: RootState) => state.compilerSlice.session);
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [terminalOutput, setTerminalOutput] = useState<terminalOutput>();
@@ -74,16 +75,16 @@ export default function Compiler() {
     dispatch(updateTheme(['fontSize', value]))
   }
   const handleAutoComplete = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'autoComplete', value }));
+    dispatch(updateEditorConfig({ type: 'autoComplete',session:currentSession, value }));
   }
   const handleTerminalChange = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'terminal', value }));
+    dispatch(updateEditorConfig({ type: 'terminal',session:currentSession, value }));
   }
   const handleExpendEditor = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'style', value: { type: 'expendEditor', value } }));
+    dispatch(updateEditorConfig({ type: 'style',session:currentSession, value: { type: 'expendEditor', value } }));
   }
   const handleOutputOpen = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'style', value: { type: 'outputOpen', value } }));
+    dispatch(updateEditorConfig({ type: 'style',session:currentSession, value: { type: 'outputOpen', value } }));
   }
 
 
@@ -163,7 +164,7 @@ export default function Compiler() {
     if (editorConfig.terminal) {
       handleCompile();
     } else {
-      localStorage.setItem(`currentInput-${currentLanguage}`, input);
+      localStorage.setItem(`currentInput-${currentLanguage}-${currentSession}`, input);
       handleRun();
     }
   }
@@ -200,7 +201,7 @@ export default function Compiler() {
       let formattedCode = formatCppCode(code);
       if (code != formattedCode) {
         dispatch(updateCodeValue(formattedCode));
-        localStorage.setItem(`currentCode-${currentLanguage}`, formattedCode);
+        localStorage.setItem(`currentCode-${currentLanguage}-${currentSession}`, formattedCode);
       }
     } else {
       toast.error(`No Formatter currently avalible for ${currentLanguage} Language.`);

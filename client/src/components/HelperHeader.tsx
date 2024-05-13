@@ -15,6 +15,7 @@ import {
 import { RootState } from "@/redux/store";
 import { Button } from "./ui/button";
 import {
+  AppWindow,
   ChevronLeft,
   ChevronRight,
   ChevronsLeftRight,
@@ -51,6 +52,7 @@ import {
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
+import { Sessions } from "./session";
 
 
 
@@ -63,6 +65,9 @@ export default function HelperHeader() {
   const dispatch = useDispatch();
   const currentLanguage = useSelector(
     (state: RootState) => state.compilerSlice.currentLanguage
+  );
+  const currentSession = useSelector(
+    (state: RootState) => state.compilerSlice.session
   );
   let code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
   const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
@@ -87,7 +92,11 @@ export default function HelperHeader() {
       title: "Code Plumber",
       text: code
     };
-    navigator.share(shareData);
+    if(navigator.share){
+      navigator.share(shareData);
+    }else{
+      toast.error("Sharing Not avalible in your browser!!")
+    }
   }
 
   let copyId: NodeJS.Timeout;
@@ -130,7 +139,7 @@ export default function HelperHeader() {
 
   const loadSnipitCode = React.useCallback((value: string) => {
     dispatch(updateCodeValue(value));
-    localStorage.setItem(`currentCode-${currentLanguage}`, value);
+    localStorage.setItem(`currentCode-${currentLanguage}-${currentSession}`, value);
   }, []);
 
 
@@ -144,10 +153,10 @@ export default function HelperHeader() {
     setTheme(value as Theme)
   }
   const handleExpendEditor = () => {
-    dispatch(updateEditorConfig({ type: 'style', value: { type: 'expendEditor', value:!editorConfig.style.expendEditor } }));
+    dispatch(updateEditorConfig({ type: 'style', session: currentSession, value: { type: 'expendEditor', value: !editorConfig.style.expendEditor } }));
   }
   const handleMachineChange = (value: string) => {
-    dispatch(updateEditorConfig({ type: 'machine', value }));
+    dispatch(updateEditorConfig({ type: 'machine', session: currentSession, value }));
     setTimeout(() => {
       location.reload();
     }, 1000);
@@ -163,10 +172,10 @@ export default function HelperHeader() {
   }, [])
 
   const handleAutoComplete = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'autoComplete', value }));
+    dispatch(updateEditorConfig({ type: 'autoComplete', session: currentSession, value }));
   }
   const handleTerminalChange = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'terminal', value }));
+    dispatch(updateEditorConfig({ type: 'terminal', session: currentSession, value }));
   }
 
   return (
@@ -295,10 +304,11 @@ export default function HelperHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                onClick={handleDownload}
                 className="flex justify-center items-center gap-1 dark:text-gray-800 text-white "
                 variant="success"
                 size="icon"
-              ><Download onClick={handleDownload} size={18} /></Button>
+              ><Download size={18} /></Button>
             </TooltipTrigger>
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
               <p>Download</p>
@@ -312,7 +322,8 @@ export default function HelperHeader() {
                 className="flex justify-center items-center gap-1 dark:text-gray-800 text-white"
                 variant="success"
                 size="icon"
-              ><Send onClick={handleShare} size={18} /></Button>
+                onClick={handleShare}
+              ><Send size={18} /></Button>
             </TooltipTrigger>
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
               <p>Share</p>
@@ -343,7 +354,7 @@ export default function HelperHeader() {
 
       </div>
       <div className="__tab_switcher flex justify-center items-center gap-1">
-        <small className="hidden sm:block">Current Language: </small>
+        <small className="hidden sm:block">Language: </small>
         {
           (['html', 'css', 'javascript'].includes(currentLanguage)) ?
             < Select
@@ -370,6 +381,20 @@ export default function HelperHeader() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
+                <Sessions>
+                  <Button size="icon" variant="secondary"><AppWindow /></Button>
+                </Sessions>
+              </TooltipTrigger>
+              <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
+                <p>Sessions</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <div className="ml-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button size="icon" variant="secondary" onClick={handleExpendEditor}>{
                   editorConfig.style.expendEditor ? <ChevronLeft size={20} /> : <ChevronsLeftRight size={20} />
                 }</Button>
@@ -383,8 +408,6 @@ export default function HelperHeader() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
-
         </div>
       </div>
     </div >

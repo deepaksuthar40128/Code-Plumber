@@ -58,8 +58,8 @@ app.post('/update-build-image', (req: Request, res: Response) => {
 })
 app.use('/compiler', routes);
 
-app.get('/', (req: Request, res: Response) => {
-    res.sendFile('../../client/dist/index.html')
+app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.resolve(path.resolve() + '/../client/dist/index.html'))
 })
 
 
