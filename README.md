@@ -11,6 +11,7 @@ Online IDE is a web-based integrated development environment (IDE) that supports
 - **Formatter**: Code formatting feature available for C++.
 - **Themes**: Offers 9 different themes to customize the appearance.
 - **Responsive Design**: Works seamlessly on different devices and screen sizes.
+- **Live Terminal**: Live integration of terminal for interactive problems.
 - **Syntax Highlighting**: Highlights syntax for better code readability.
 
 ## Usage
@@ -24,7 +25,8 @@ Online IDE is a web-based integrated development environment (IDE) that supports
 
 ## Technologies Used
 
-- **Node.js**: Backend runtime environment.
+- **Node.js**: Backend runtime environment for live compilation and running.
+- **Go**: Backend runtime environment and api gateway.
 - **React 18**: Frontend JavaScript library for building user interfaces.
 - **Tailwind CSS**: Utility-first CSS framework for styling and shadch ui.
 
