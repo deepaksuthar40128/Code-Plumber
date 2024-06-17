@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState, useCallback, useMemo } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { io } from 'socket.io-client';
@@ -82,7 +82,7 @@ export default function Compiler() {
 
 
   //Handle Run code
-  const handleRun = useCallback(async () => {
+  const handleRun = async () => {
     try {
       if (editorConfig.style.expendEditor) handleExpendEditor(false);
       if (editorConfig.style.outputOpen) handleOutputOpen(false);
@@ -107,13 +107,13 @@ export default function Compiler() {
     } finally {
       setRunCodeStatus(false);
     }
-  }, [editorConfig.style, runCode, currentLanguage, code, input]);
+  };
 
 
 
 
   //handle compilation for live terminal run
-  const handleCompile = useCallback(async () => {
+  const handleCompile = async () => {
     try {
       if (editorConfig.style.expendEditor) handleExpendEditor(false);
       socket.disconnect();
@@ -149,7 +149,7 @@ export default function Compiler() {
     } finally {
       setRunCodeStatus(false);
     }
-  }, [editorConfig.style, compileCode, currentLanguage, code]);
+  };
 
 
 
@@ -159,7 +159,7 @@ export default function Compiler() {
     if (editorConfig.terminal) {
       handleCompile();
     } else {
-      localStorage.setItem(`currentInput-${currentLanguage}-${currentSession}`, input);
+      localStorage.setItem(`currentInput-${currentLanguage}-${currentSession}`, input); 
       handleRun();
     }
   };
@@ -170,7 +170,7 @@ export default function Compiler() {
     if (runCodeStatus) {
       selectRunner();
     }
-  }, [runCodeStatus, selectRunner]);
+  }, [runCodeStatus]);
 
   useEffect(() => {
     const handleConnect = () => {
@@ -235,7 +235,7 @@ export default function Compiler() {
     }
   }, [editorConfig.terminal]);
 
-  const renderResizablePanel = useMemo(() => {
+  const RenderResizablePanel = () => {
     if (['html', 'css', 'javascript'].includes(currentLanguage)) {
       return (
         <ResizablePanel className={`h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30}>
@@ -263,7 +263,7 @@ export default function Compiler() {
         </ResizablePanel>
       );
     }
-  }, [currentLanguage, editorConfig.style, editorConfig.terminal, terminalOutput, isCompileLoading, isLoading, error, executionTime, output]);
+  };
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -340,7 +340,7 @@ export default function Compiler() {
           </ContextMenu>
         </ResizablePanel>
         <ResizableHandle className="w-1 brightness-105 z-50" withHandle={!editorConfig.style.expendEditor} />
-        {renderResizablePanel}
+        <RenderResizablePanel />
       </ResizablePanelGroup>
     </Suspense>
   );

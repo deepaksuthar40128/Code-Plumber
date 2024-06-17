@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 const genrateBaseURL = (): string => {
-  let data = localStorage.getItem('editor-config');
+  let lastSession = localStorage.getItem('last-session')
+  let data = localStorage.getItem('editor-config-' + lastSession); 
   if (data) {
     let parsedData = JSON.parse(data);
     if (parsedData.machine === 'local') {
@@ -34,12 +35,12 @@ export const api = createApi({
           };
         },
       }),
-      compileCode: builder.mutation<
+    compileCode: builder.mutation<
       {
         success: boolean,
         message: string,
-        error:boolean,
-        file:''
+        error: boolean,
+        file: ''
       }
       , any>({
         query: (runtime) => {
