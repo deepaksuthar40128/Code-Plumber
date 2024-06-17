@@ -1,4 +1,6 @@
-import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
+import React, { Suspense, memo } from "react";
+const CodeMirror = React.lazy(() => import('@uiw/react-codemirror'));
+import { EditorState, Extension } from "@uiw/react-codemirror";
 import { loadLanguage } from "@uiw/codemirror-extensions-langs";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -14,7 +16,7 @@ import { inlineSuggestion } from 'codemirror-extension-inline-suggestion';
 import { useTheme } from "./theme-provider";
 import cppKeywords from "@/languages/cpp/cpp";
 
-export default function CodeEditor({ autoCompletion }: { autoCompletion: boolean }) {
+function CodeEditor({ autoCompletion }: { autoCompletion: boolean }) {  
   const currentLanguage = useSelector(
     (state: RootState) => state.compilerSlice.currentLanguage
   );
@@ -54,19 +56,21 @@ export default function CodeEditor({ autoCompletion }: { autoCompletion: boolean
 
   const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
   return (
-    <CodeMirror
-      value={fullCode[currentLanguage]}
-      height="calc(100vh - 60px - 50px)"
-      className={`code-editor text-${editorTheme.fontSize}`}
-      extensions={[
-        loadLanguage(currentLanguage)!,
-        inlineSuggestion({
-          fetchFn: Suggestion,
-          delay: 100,
-        }),]}
-      onChange={onChange}
-      theme={ThemeMaper[theme as string]}
-    />
+    <Suspense fallback={<h1>Loading Editor...</h1>}>
+      <CodeMirror
+        value={fullCode[currentLanguage]}
+        height="calc(100vh - 60px - 50px)"
+        className={`code-editor text-${editorTheme.fontSize}`}
+        extensions={[
+          loadLanguage(currentLanguage)!,
+          inlineSuggestion({
+            fetchFn: Suggestion,
+            delay: 100,
+          }),]}
+        onChange={onChange}
+        theme={ThemeMaper[theme as string]}
+      />
+    </Suspense>
   );
 }
 
@@ -102,3 +106,5 @@ function autoComplete(input: string): string {
     b.length - a.length);
   return matches[0];
 }
+
+export default  memo(CodeEditor)

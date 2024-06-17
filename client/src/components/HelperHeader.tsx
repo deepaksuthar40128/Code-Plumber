@@ -30,7 +30,7 @@ import {
   PopoverTrigger
 } from "./ui/popover";
 import { Input } from "./ui/input";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -52,7 +52,7 @@ import {
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
-import { Sessions } from "./session";
+const Sessions = React.lazy(() => import("./session"));
 
 
 
@@ -92,9 +92,9 @@ export default function HelperHeader() {
       title: "Code Plumber",
       text: code
     };
-    if(navigator.share){
+    if (navigator.share) {
       navigator.share(shareData);
-    }else{
+    } else {
       toast.error("Sharing Not avalible in your browser!!")
     }
   }
@@ -381,9 +381,11 @@ export default function HelperHeader() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Sessions>
-                  <Button size="icon" variant="secondary"><AppWindow /></Button>
-                </Sessions>
+                <Suspense fallback={<h1>Loading Sessions...</h1>}>
+                  <Sessions>
+                    <Button size="icon" variant="secondary"><AppWindow /></Button>
+                  </Sessions>
+                </Suspense>
               </TooltipTrigger>
               <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
                 <p>Sessions</p>

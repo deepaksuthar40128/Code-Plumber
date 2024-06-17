@@ -241,6 +241,6 @@ function setCaretPosition(element: HTMLElement) {
             }
         }
     } catch (err) {
-        console.log("Kuch nhi huaa");
+        console.log("logging....");
     }
 }

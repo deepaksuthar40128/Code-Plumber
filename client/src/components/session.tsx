@@ -38,7 +38,7 @@ export type sessionType = {
     isCurrent: boolean
 }
 
-export const Sessions = ({ children }: { children: JSX.Element }) => {
+const Sessions = ({ children }: { children: JSX.Element }) => {
     const [sessions, setSessions] = useState<sessionType[]>([]);
     const currentSession = useSelector(
         (state: RootState) => state.compilerSlice.session
@@ -137,3 +137,5 @@ export const Sessions = ({ children }: { children: JSX.Element }) => {
         }
     }
 }
+
+export default Sessions;
