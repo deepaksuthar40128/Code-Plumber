@@ -15,6 +15,7 @@ import { tomorrowNightBlue } from '@uiw/codemirror-theme-tomorrow-night-blue';
 import { inlineSuggestion } from 'codemirror-extension-inline-suggestion';
 import { useTheme } from "./theme-provider";
 import cppKeywords from "@/languages/cpp/cpp";
+import Loader from "./Loader/Loader";
 
 function CodeEditor({ autoCompletion }: { autoCompletion: boolean }) {  
   const currentLanguage = useSelector(
@@ -56,7 +57,7 @@ function CodeEditor({ autoCompletion }: { autoCompletion: boolean }) {
 
   const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
   return (
-    <Suspense fallback={<h1>Loading Editor...</h1>}>
+    <Suspense fallback={<Loader/>}>
       <CodeMirror
         value={fullCode[currentLanguage]}
         height="calc(100vh - 60px - 50px)"

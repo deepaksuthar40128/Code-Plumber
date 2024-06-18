@@ -20,21 +20,25 @@ const ResizableHandle = React.lazy(() => import("@/components/ui/resizable").the
 const ResizablePanel = React.lazy(() => import("@/components/ui/resizable").then(module => ({ default: module.ResizablePanel })));
 const ResizablePanelGroup = React.lazy(() => import("@/components/ui/resizable").then(module => ({ default: module.ResizablePanelGroup })));
 
-const ContextMenu = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenu })));
-const ContextMenuCheckboxItem = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuCheckboxItem })));
-const ContextMenuContent = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuContent })));
-const ContextMenuItem = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuItem })));
-const ContextMenuLabel = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuLabel })));
-const ContextMenuRadioGroup = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuRadioGroup })));
-const ContextMenuRadioItem = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuRadioItem })));
-const ContextMenuSeparator = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuSeparator })));
-const ContextMenuShortcut = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuShortcut })));
-const ContextMenuSub = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuSub })));
-const ContextMenuSubContent = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuSubContent })));
-const ContextMenuSubTrigger = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuSubTrigger })));
-const ContextMenuTrigger = React.lazy(() => import("@/components/ui/context-menu").then(module => ({ default: module.ContextMenuTrigger })));
 
 import formatCppCode from "@/languages/cpp/cppFormater";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuRadioGroup,
+  ContextMenuSub,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+  ContextMenuShortcut,
+  ContextMenuSubContent,
+  ContextMenuSeparator,
+  ContextMenuRadioItem,
+  ContextMenuCheckboxItem
+} from "@/components/ui/context-menu";
+import Loader from "@/components/Loader/Loader";
+import ErrorBoundary from "@/components/Error/Boundary";
 
 export const socket = io('/', { autoConnect: false });
 
@@ -62,6 +66,8 @@ export default function Compiler() {
   const dispatch = useDispatch();
   const { theme, setTheme } = useTheme();
   const [compiledFilePath, setCompiledFilePath] = useState<string>('');
+
+
 
   const handleFontChange = (value: string) => {
     dispatch(updateTheme(['fontSize', value]));
@@ -159,7 +165,7 @@ export default function Compiler() {
     if (editorConfig.terminal) {
       handleCompile();
     } else {
-      localStorage.setItem(`currentInput-${currentLanguage}-${currentSession}`, input); 
+      localStorage.setItem(`currentInput-${currentLanguage}-${currentSession}`, input);
       handleRun();
     }
   };
@@ -221,6 +227,8 @@ export default function Compiler() {
     }
   };
 
+
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -238,110 +246,124 @@ export default function Compiler() {
   const RenderResizablePanel = () => {
     if (['html', 'css', 'javascript'].includes(currentLanguage)) {
       return (
-        <ResizablePanel className={`h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30}>
-          <RenderCode />
-        </ResizablePanel>
+        <ErrorBoundary>
+          <ResizablePanel className={`h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30}>
+            <RenderCode />
+          </ResizablePanel>
+        </ErrorBoundary>
       );
     } else if (editorConfig.terminal) {
       return (
-        <ResizablePanel className={`bg-gray-200 dark:bg-gray-800 h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30}>
-          <Terminal setRunCodeStatus={setRunCodeStatus} output={terminalOutput} isLoading={isCompileLoading} />
-        </ResizablePanel>
+        <ErrorBoundary>
+          <ResizablePanel className={`bg-gray-200 dark:bg-gray-800 h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30}>
+            <Terminal setRunCodeStatus={setRunCodeStatus} output={terminalOutput} isLoading={isCompileLoading} />
+          </ResizablePanel>
+        </ErrorBoundary>
       );
     } else {
       return (
-        <ResizablePanel className={`bg-gray-200 dark:bg-gray-800 ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel className={`min-h-40 ${editorConfig.style.inputOpen ? 'hidden' : ''}`} defaultSize={50}>
-              <Input setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
-            </ResizablePanel>
-            <ResizableHandle className="w-1" withHandle />
-            <ResizablePanel className={`min-h-40 ${editorConfig.style.outputOpen ? 'hidden' : ''}`} defaultSize={50}>
-              <Output error={error} executionTime={executionTime} output={output} setOutput={setOutput} />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
+        <ErrorBoundary>
+          <ResizablePanel className={`bg-gray-200 dark:bg-gray-800 ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>
+            <ResizablePanelGroup direction="vertical">
+              <Suspense fallback={<Loader />}>
+                <ResizablePanel className={`min-h-40 ${editorConfig.style.inputOpen ? 'hidden' : ''}`} defaultSize={50}>
+                  <Input setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
+                </ResizablePanel>
+              </Suspense>
+              <ResizableHandle className="w-1" withHandle />
+              <ResizablePanel className={`min-h-40 ${editorConfig.style.outputOpen ? 'hidden' : ''}`} defaultSize={50}>
+                <Output error={error} executionTime={executionTime} output={output} setOutput={setOutput} />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+        </ErrorBoundary>
       );
     }
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel className="h-[calc(100dvh-60px)] sm:min-w-[350px]" defaultSize={70}>
-          <HelperHeader />
-          <ContextMenu>
-            <ContextMenuTrigger>
-              <CodeEditor autoCompletion={editorConfig.autoComplete} />
-            </ContextMenuTrigger>
-            <ContextMenuContent className="w-64">
-              <ContextMenuItem inset onClick={() => setRunCodeStatus(true)}>
-                Run
-                <ContextMenuShortcut>⌘⇧R</ContextMenuShortcut>
-              </ContextMenuItem>
-              <ContextMenuItem inset onClick={formateCode}>
-                Format Code
-                <ContextMenuShortcut>Alt⇧F</ContextMenuShortcut>
-              </ContextMenuItem>
-              <ContextMenuItem inset onClick={() => handleExpendEditor(!editorConfig.style.expendEditor)}>
-                {editorConfig.style.expendEditor ? 'Collapse Editor' : 'Expand Editor'}
-                <ContextMenuShortcut>⌘J</ContextMenuShortcut>
-              </ContextMenuItem>
-              <ContextMenuSub>
-                <ContextMenuSubTrigger inset>Font Size</ContextMenuSubTrigger>
-                <ContextMenuSubContent className="w-48">
-                  <ContextMenuRadioGroup onValueChange={(value) => handleFontChange(value)} value={editorTheme.fontSize}>
-                    <ContextMenuLabel inset>Available Font Sizes</ContextMenuLabel>
-                    <ContextMenuSeparator />
-                    <ContextMenuRadioItem value="xs" className="text-xs">
-                      Small
-                    </ContextMenuRadioItem>
-                    <ContextMenuRadioItem value="sm" className="text-sm">
-                      Normal
-                    </ContextMenuRadioItem>
-                    <ContextMenuRadioItem value="xl" className="text-xl">
-                      Large
-                    </ContextMenuRadioItem>
-                    <ContextMenuRadioItem value="2xl" className="text-2xl">
-                      Extra Large
-                    </ContextMenuRadioItem>
-                  </ContextMenuRadioGroup>
-                </ContextMenuSubContent>
-              </ContextMenuSub>
-              <ContextMenuSeparator />
-              <ContextMenuCheckboxItem checked={editorConfig.autoComplete} onCheckedChange={handleAutoComplete}>
-                Auto Completion
-              </ContextMenuCheckboxItem>
-              <ContextMenuCheckboxItem checked={editorConfig.terminal} onCheckedChange={handleTerminalChange}>
-                Terminal
-              </ContextMenuCheckboxItem>
-              <ContextMenuSeparator />
-              <ContextMenuRadioGroup onValueChange={(value) => setTheme(value as Theme)} value={theme}>
-                <ContextMenuLabel inset>Popular Themes</ContextMenuLabel>
-                {!['Tomorrow-Night-Blue', 'Dark', 'Light', 'Kimbie Red'].includes(theme) && (
-                  <ContextMenuRadioItem value={theme}>
-                    {theme.replace('-', ' ')}
+    <ResizablePanelGroup direction="horizontal">
+      <ResizablePanel className="h-[calc(100dvh-60px)] sm:min-w-[350px]" defaultSize={70}>
+        <Suspense fallback={<Loader />}>
+          <ErrorBoundary>
+            <HelperHeader />
+          </ErrorBoundary>
+        </Suspense>
+        <ContextMenu>
+          <ContextMenuTrigger>
+            <Suspense fallback={<Loader />}>
+              <ErrorBoundary>
+                <CodeEditor autoCompletion={editorConfig.autoComplete} />
+              </ErrorBoundary>
+            </Suspense>
+          </ContextMenuTrigger>
+          <ContextMenuContent className="w-64">
+            <ContextMenuItem inset onClick={() => setRunCodeStatus(true)}>
+              Run
+              <ContextMenuShortcut>⌘⇧R</ContextMenuShortcut>
+            </ContextMenuItem>
+            <ContextMenuItem inset onClick={formateCode}>
+              Format Code
+              <ContextMenuShortcut>Alt⇧F</ContextMenuShortcut>
+            </ContextMenuItem>
+            <ContextMenuItem inset onClick={() => handleExpendEditor(!editorConfig.style.expendEditor)}>
+              {editorConfig.style.expendEditor ? 'Collapse Editor' : 'Expand Editor'}
+              <ContextMenuShortcut>⌘J</ContextMenuShortcut>
+            </ContextMenuItem>
+            <ContextMenuSub>
+              <ContextMenuSubTrigger inset>Font Size</ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-48">
+                <ContextMenuRadioGroup onValueChange={(value) => handleFontChange(value)} value={editorTheme.fontSize}>
+                  <ContextMenuLabel inset>Available Font Sizes</ContextMenuLabel>
+                  <ContextMenuSeparator />
+                  <ContextMenuRadioItem value="xs" className="text-xs">
+                    Small
                   </ContextMenuRadioItem>
-                )}
-                <ContextMenuRadioItem value="Tomorrow-Night-Blue">
-                  Tomorrow Night Blue
+                  <ContextMenuRadioItem value="sm" className="text-sm">
+                    Normal
+                  </ContextMenuRadioItem>
+                  <ContextMenuRadioItem value="xl" className="text-xl">
+                    Large
+                  </ContextMenuRadioItem>
+                  <ContextMenuRadioItem value="2xl" className="text-2xl">
+                    Extra Large
+                  </ContextMenuRadioItem>
+                </ContextMenuRadioGroup>
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            <ContextMenuSeparator />
+            <ContextMenuCheckboxItem checked={editorConfig.autoComplete} onCheckedChange={handleAutoComplete}>
+              Auto Completion
+            </ContextMenuCheckboxItem>
+            <ContextMenuCheckboxItem checked={editorConfig.terminal} onCheckedChange={handleTerminalChange}>
+              Terminal
+            </ContextMenuCheckboxItem>
+            <ContextMenuSeparator />
+            <ContextMenuRadioGroup onValueChange={(value) => setTheme(value as Theme)} value={theme}>
+              <ContextMenuLabel inset>Popular Themes</ContextMenuLabel>
+              {!['Tomorrow-Night-Blue', 'Dark', 'Light', 'Kimbie Red'].includes(theme) && (
+                <ContextMenuRadioItem value={theme}>
+                  {theme.replace('-', ' ')}
                 </ContextMenuRadioItem>
-                <ContextMenuRadioItem value="Dark">
-                  Dark
-                </ContextMenuRadioItem>
-                <ContextMenuRadioItem value="Light">
-                  Light
-                </ContextMenuRadioItem>
-                <ContextMenuRadioItem value="Kimbie Red">
-                  Kimbie Red
-                </ContextMenuRadioItem>
-              </ContextMenuRadioGroup>
-            </ContextMenuContent>
-          </ContextMenu>
-        </ResizablePanel>
-        <ResizableHandle className="w-1 brightness-105 z-50" withHandle={!editorConfig.style.expendEditor} />
-        <RenderResizablePanel />
-      </ResizablePanelGroup>
-    </Suspense>
+              )}
+              <ContextMenuRadioItem value="Tomorrow-Night-Blue">
+                Tomorrow Night Blue
+              </ContextMenuRadioItem>
+              <ContextMenuRadioItem value="Dark">
+                Dark
+              </ContextMenuRadioItem>
+              <ContextMenuRadioItem value="Light">
+                Light
+              </ContextMenuRadioItem>
+              <ContextMenuRadioItem value="Kimbie Red">
+                Kimbie Red
+              </ContextMenuRadioItem>
+            </ContextMenuRadioGroup>
+          </ContextMenuContent>
+        </ContextMenu>
+      </ResizablePanel>
+      <ResizableHandle className="w-1 brightness-105 z-50" withHandle={!editorConfig.style.expendEditor} />
+      <RenderResizablePanel />
+    </ResizablePanelGroup>
   );
 }

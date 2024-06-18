@@ -52,6 +52,8 @@ import {
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
+import Loader from "./Loader/Loader";
+import ErrorBoundary from "./Error/Boundary";
 const Sessions = React.lazy(() => import("./session"));
 
 
@@ -381,10 +383,12 @@ export default function HelperHeader() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Suspense fallback={<h1>Loading Sessions...</h1>}>
-                  <Sessions>
-                    <Button size="icon" variant="secondary"><AppWindow /></Button>
-                  </Sessions>
+                <Suspense fallback={<Loader />}>
+                  <ErrorBoundary>
+                    <Sessions>
+                      <Button size="icon" variant="secondary"><AppWindow /></Button>
+                    </Sessions>
+                  </ErrorBoundary>
                 </Suspense>
               </TooltipTrigger>
               <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
