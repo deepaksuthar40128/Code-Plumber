@@ -24,7 +24,7 @@ const Input = ({ setRunCodeStatus, isLoading, setInput }: {
     setRunCodeStatus: React.Dispatch<React.SetStateAction<boolean>>,
     isLoading: boolean,
     setInput: React.Dispatch<React.SetStateAction<string>>
-}) => {
+}) => {  
     const inputRef = useRef(null);
     const dispatch = useDispatch();
     const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage);
@@ -111,4 +111,4 @@ const Input = ({ setRunCodeStatus, isLoading, setInput }: {
         </div >
     )
 }
-export default Input;
+export default React.memo(Input);
