@@ -9,6 +9,7 @@ import { Server } from 'socket.io'
 import { ioFunction } from "./controllers/socket";
 const server = http.createServer(app)
 const origins = ["http://localhost:5173", "https://code-plumber.vercel.app"];
+import { rateLimit } from 'express-rate-limit'
 const io = new Server(server, {
     cors: {
         origin: origins
@@ -17,6 +18,18 @@ const io = new Server(server, {
 ioFunction(io);
 
 
+const limiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 12,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    skip: (req) => {
+        if (req.url.match(/\.(js|css|jpg|png|svg|ico|woff|woff2|ttf)$/)) return true;
+        return false;
+    }
+})
+
+app.use(limiter)
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.resolve(__dirname + '/../../client/dist/')));

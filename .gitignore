@@ -3,3 +3,4 @@ server/node_modules
 api/node_modules
 client/dist
 server/dist
+api/dist

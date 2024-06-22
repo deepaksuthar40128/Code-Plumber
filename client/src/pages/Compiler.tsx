@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { io } from 'socket.io-client';
@@ -48,7 +48,7 @@ export interface terminalOutput {
   format: "Input" | "Output"
 }
 
-export default function Compiler() { 
+export default function Compiler() {
   const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage);
   const code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
   const editorConfig = useSelector((state: RootState) => state.editorSlice);
@@ -83,7 +83,7 @@ export default function Compiler() {
   };
   const handleOutputOpen = (value: boolean) => {
     dispatch(updateEditorConfig({ type: 'style', session: currentSession, value: { type: 'outputOpen', value } }));
-  }; 
+  };
 
 
   //Handle Run code
@@ -329,22 +329,36 @@ export default function Compiler() {
       {
         (['html', 'css', 'javascript'].includes(currentLanguage)) ?
           <ResizablePanel className={`h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
-            <RenderCode />
+            <Suspense fallback={<Loader />}>
+              <ErrorBoundary>
+                <RenderCode />
+              </ErrorBoundary>
+            </Suspense>
           </ResizablePanel>
           :
           editorConfig.terminal ?
             <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 h-[calc(100dvh-60px)] ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-[350px]`} defaultSize={30} >
-              <Terminal setRunCodeStatus={setRunCodeStatus} output={terminalOutput} isLoading={isCompileLoading} />
+              <Suspense fallback={<Loader />}>
+                <ErrorBoundary>
+                  <Terminal setRunCodeStatus={setRunCodeStatus} output={terminalOutput} isLoading={isCompileLoading} />
+                </ErrorBoundary>
+              </Suspense>
             </ResizablePanel>
             :
             <ResizablePanel className={` bg-gray-200 dark:bg-gray-800 ${editorConfig.style.expendEditor ? 'hidden' : ''} min-w-72`} defaultSize={30}>
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel className={`min-h-40 ${editorConfig.style.inputOpen ? 'hidden' : ''}`} defaultSize={50}>
-                  <Input setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
+                  <Suspense fallback={<Loader />}>
+                    <ErrorBoundary>
+                      <Input setRunCodeStatus={setRunCodeStatus} isLoading={isLoading} setInput={setInput} />
+                    </ErrorBoundary>
+                  </Suspense>
                 </ResizablePanel>
                 <ResizableHandle className="w-1" withHandle />
                 <ResizablePanel className={`min-h-40 ${editorConfig.style.outputOpen ? 'hidden' : ''}`} defaultSize={50}>
-                  <Output error={error} executionTime={executionTime} output={output} setOutput={setOutput} />
+                  <ErrorBoundary>
+                    <Output error={error} executionTime={executionTime} output={output} setOutput={setOutput} />
+                  </ErrorBoundary>
                 </ResizablePanel>
               </ResizablePanelGroup>
             </ResizablePanel>

@@ -22,6 +22,8 @@ import {
   ClipboardCheck,
   Copy, Download,
   Send, Settings,
+  StopCircle,
+  Timer,
   Trash2
 } from "lucide-react";
 import {
@@ -54,16 +56,17 @@ import { Label } from "./ui/label";
 import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
 import Loader from "./Loader/Loader";
 import ErrorBoundary from "./Error/Boundary";
+import CountTimer from "./Timer";
 const Sessions = React.lazy(() => import("./session"));
 
 
 
 
 export default function HelperHeader() {
-
   const [snipitName, setSnipitName] = useState('');
   const [snipitsList, setsnipitsList] = useState({});
   const [copied, setCopied] = useState(false);
+  const [timer, setTimer] = useState(false);
   const dispatch = useDispatch();
   const currentLanguage = useSelector(
     (state: RootState) => state.compilerSlice.currentLanguage
@@ -353,7 +356,38 @@ export default function HelperHeader() {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="flex justify-center items-center gap-1 dark:text-gray-800 text-white z-10"
+                variant="success"
+                size="icon"
+              >
+                {
+                  timer ?
+                    <StopCircle onClick={() => setTimer(false)} size={24} />
+                    :
+                    <Timer onClick={() => setTimer(true)} size={22} />
+                }
+              </Button>
+            </TooltipTrigger>
+            {
+              timer &&
+              <div className="bg-gray-600 flex items-center px-4 -translate-x-2 z-0" style={{ borderRadius: "0 5px 5px 0" }}>
+                <CountTimer />
+              </div>
+            }
+            <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
+              {
+                timer ?
+                  <p>Stop</p>
+                  :
+                  <p>Timer</p>
+              }
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <div className="__tab_switcher flex justify-center items-center gap-1">
         <small className="hidden sm:block">Language: </small>

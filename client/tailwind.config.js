@@ -69,12 +69,12 @@ module.exports = {
         "blink": {
           from: { opacity:"0"},
           to: { opacity: "1" },
-        },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "blink":"blink 0.5s linear infinite"
+        "blink":"blink 0.5s linear infinite", 
       },
     },
   },
