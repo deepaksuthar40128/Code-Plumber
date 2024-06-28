@@ -2,7 +2,7 @@ import net from "node:net"
 import { Maneger } from "./routes/compilerRouter";
 import { handleSocket } from "./live/terminal";
 export const rpcServer = net.connect({
-  host: "127.0.0.1",
+  host: "api-service",
   port: 4555
 }, handleConnection)
 

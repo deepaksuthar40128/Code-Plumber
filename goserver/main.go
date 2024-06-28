@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	serverAddr := "127.0.0.1:4555"
+	serverAddr := "api-service:4555"
 
 	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
@@ -21,7 +21,7 @@ func main() {
 
 	fmt.Println("Connected to server on", serverAddr)
 
-	startupMsg := map[string]string{"type": "Startup", "service": "Go"}
+	startupMsg := map[string]string{"type": "Startup", "service": "Go1"}
 	err = sendJSONMessage(conn, startupMsg)
 	if err != nil {
 		fmt.Println("Error sending startup message:", err)

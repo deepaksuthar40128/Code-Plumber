@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: plumber 
+    ports:
+      - "5432:5432"
+    networks:
+      - plumber
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api-service
+    ports:
+      - "4321:4320"
+      - "4330:4330" 
+    networks:
+      - plumber
+
+  nodeserver:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: nodeServer
+    networks:
+      - plumber
+    depends_on:
+      - api 
+
+  goserver1:
+    build:
+      context: ./goserver
+      dockerfile: Dockerfile
+    container_name: goserver1
+    networks:
+      - plumber
+    depends_on:
+      - api 
+
+  goserver2:
+    build:
+      context: ./shareServer
+      dockerfile: Dockerfile
+    container_name: goserver2
+    networks:
+      - plumber
+    depends_on:
+      - api
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://username:password@postgres:5432/plumber?sslmode=disable
+
+networks:
+  plumber:
+
+volumes:
+  postgres_data:

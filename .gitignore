@@ -1,6 +1,6 @@
-client/node_modules
+api/client/node_modules
+api/client/dist
+api/server/node_modules
+api/server/dist
 server/node_modules
-api/node_modules
-client/dist
 server/dist
-api/dist
