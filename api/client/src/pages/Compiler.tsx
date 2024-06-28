@@ -248,13 +248,13 @@ export default function Compiler() {
 
   return (
     <>
-      <Routes>
-        <ErrorBoundary>
-          <Suspense fallback={<Loader />}>
+      <ErrorBoundary>
+        <Suspense fallback={<Loader />}>
+          <Routes>
             <Route path="/receive" element={<FetchCode />} />
-          </Suspense>
-        </ErrorBoundary>
-      </Routes>
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel className="h-[calc(100dvh-60px)] sm:min-w-[350px]" defaultSize={70}>
           <Suspense fallback={<Loader />}>
