@@ -40,7 +40,7 @@ import {
 import Loader from "@/components/Loader/Loader";
 import ErrorBoundary from "@/components/Error/Boundary";
 import { Route, Routes } from "react-router-dom";
-import FetchCode from "@/components/FetchCode";
+const FetchCode = React.lazy(() => import("@/components/FetchCode"));
 
 export const socket = io('/', { autoConnect: false });
 
@@ -249,7 +249,11 @@ export default function Compiler() {
   return (
     <>
       <Routes>
-        <Route path="/receive" element={<FetchCode />} />
+        <ErrorBoundary>
+          <Suspense fallback={<Loader />}>
+            <Route path="/receive" element={<FetchCode />} />
+          </Suspense>
+        </ErrorBoundary>
       </Routes>
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel className="h-[calc(100dvh-60px)] sm:min-w-[350px]" defaultSize={70}>

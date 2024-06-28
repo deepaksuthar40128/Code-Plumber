@@ -24,5 +24,5 @@ RUN chmod +x ./wait-for-it.sh
 RUN go build -o main .
 
 # Set the entry point
-ENTRYPOINT [ "./wait-for-it.sh","-t","120","api-service:4320","--"]
+ENTRYPOINT [ "./wait-for-it.sh","-t","1200","api-service:4320","--"]
 CMD [ "./main" ]

@@ -56,8 +56,8 @@ import { Label } from "./ui/label";
 import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
 import Loader from "./Loader/Loader";
 import ErrorBoundary from "./Error/Boundary";
-import CountTimer from "./Timer"; 
-import { ShareLink } from "./Share";
+import CountTimer from "./Timer";
+const ShareLink = React.lazy(() => import("./Share"));
 import { Link } from "react-router-dom";
 const Sessions = React.lazy(() => import("./session"));
 
@@ -269,7 +269,7 @@ export default function HelperHeader() {
             </div>
             <div className="mb-4">
               <div className="flex items-center justify-between space-x-2">
-                <Link to="/compiler/receive">Fetch Code</Link> 
+                <Link to="/compiler/receive">Fetch Code</Link>
               </div>
             </div>
             <div className="mb-4">
@@ -340,11 +340,15 @@ export default function HelperHeader() {
                 </PopoverTrigger>
                 <PopoverContent className="w-max bg-gray-100 dark:bg-gray-900 border-2 border-b-0 text-gray-800 dark:text-white border-none">
                   <div>
-                    <ShareLink>
-                      <div className="relative flex cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground hover:dark:bg-gray-800 hover:bg-gray-300">
-                        Share Link
-                      </div>
-                    </ShareLink>
+                    <ErrorBoundary>
+                      <Suspense fallback={<Loader />}>
+                        <ShareLink>
+                          <div className="relative flex cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground hover:dark:bg-gray-800 hover:bg-gray-300">
+                            Share Link
+                          </div>
+                        </ShareLink>
+                      </Suspense>
+                    </ErrorBoundary>
                     <div onClick={handleShare} className="relative flex cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground hover:dark:bg-gray-800 hover:bg-gray-300">
                       External Share
                     </div>

@@ -5,8 +5,8 @@ services:
     image: postgres:latest
     container_name: postgres
     environment:
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: deepak
       POSTGRES_DB: plumber 
     ports:
       - "5432:5432"
@@ -57,7 +57,7 @@ services:
       - api
       - postgres
     environment:
-      DATABASE_URL: postgresql://username:password@postgres:5432/plumber?sslmode=disable
+      DATABASE_URL: postgresql://postgres:deepak@postgres:5432/plumber?sslmode=disable
 
 networks:
   plumber:

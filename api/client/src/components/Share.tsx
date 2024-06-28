@@ -19,7 +19,7 @@ import { useUploadCodeMutation } from "@/redux/slices/api"
 import { toast } from "sonner"
 import { useState } from "react"
 
-export function ShareLink({ children }: { children: React.ReactElement }) {
+export default function ShareLink({ children }: { children: React.ReactElement }) {
     const data = useSelector((state: RootState) => state.compilerSlice);
     const [start, setStart] = useState<boolean>(false);
     const [message, setMessage] = useState<string>("");
@@ -32,7 +32,7 @@ export function ShareLink({ children }: { children: React.ReactElement }) {
             let res = await upload({ language: data.currentLanguage, code: data.code[data.currentLanguage], message }).unwrap();
             if (res.success) {
                 console.log(res);
-                setShareableLink(`https://code-plumber.vercel.app/compiler/cloud?id=${res.codeId}`)
+                setShareableLink(`https://code-plumber.vercel.app/compiler/receive?id=${res.codeId}`)
             }
             else {
                 toast.warning('Error while uploading Code!!');
