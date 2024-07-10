@@ -1,7 +1,6 @@
 import { sessionType } from "../session";
 
-const SessionCard = ({ data }: { data: sessionType }) => {
-    console.log(data)
+const SessionCard = ({ data }: { data: sessionType }) => { 
     return (
         <div className={`max-w-sm  border rounded-lg shadow ${data.isCurrent ? "bg-white dark:bg-gray-800" : "bg-gray-100 dark:bg-gray-700"} border-gray-100 dark:border-gray-700`}>
             <div className="p-5">
