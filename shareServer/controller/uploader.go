@@ -45,7 +45,7 @@ func Collactor(q*utils.Queue,db *sql.DB){
 		for{ 
 			for{ 
 				tp,err:=q.Top();
-				if err !=nil || (time.Since(tp.Time)<(5*60*time.Second)){
+				if err !=nil || (time.Since(tp.Time)<(10*60*time.Second)){
 					break
 				}
 				if _,err:=q.Dequeue();err!=nil{

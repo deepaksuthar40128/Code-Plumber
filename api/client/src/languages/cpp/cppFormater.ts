@@ -1,4 +1,4 @@
-function formatCppCode(code: string): string {
+ function formatCppCode(code: string): string { 
     let indentLevel = 0;
     let formattedCode = "";
     for (const line of code.split(/\){\n*/).join("\){\n").split("\n")) {
@@ -42,4 +42,4 @@ function formatCppCode(code: string): string {
     return '';
 }
 
-export default formatCppCode;
+export default  formatCppCode;

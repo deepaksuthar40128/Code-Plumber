@@ -83,7 +83,7 @@ const Sessions = ({ children }: { children: JSX.Element }) => {
             <CarouselItem key={-1} className="lg:basis-1/3">
               <div className="max-w-sm cursor-pointer h-full bg-white border flex justify-center items-center rounded-lg shadow border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                 <div className="mb-4">
-                  <p className="mb-2 text-gray-400">Set Session Name</p>
+                  <p className="mb-2 text-gray-400">Create Session:</p>
                   <div className="w-full max-w-sm">
                     <Input
                       onChange={(e) => setSessionName(e.target.value)}

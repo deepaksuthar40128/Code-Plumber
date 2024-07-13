@@ -20,19 +20,23 @@ import {
   ChevronRight,
   ChevronsLeftRight,
   ClipboardCheck,
-  Copy, Download,
-  Send, Settings,
+  Copy,
+  Download,
+  Send,
+  Settings,
   StopCircle,
   Timer,
-  Trash2
+  Trash2,
 } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "./ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Input } from "./ui/input";
-import React, { Suspense, useEffect, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -41,7 +45,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { ThemeMaper } from "./CodeEditor";
 import { Theme, useTheme } from "./theme-provider";
@@ -49,7 +53,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from "./ui/tooltip";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
@@ -57,15 +61,12 @@ import { updateEditorConfig } from "@/redux/slices/editorConfigSlice";
 import Loader from "./Loader/Loader";
 import ErrorBoundary from "./Error/Boundary";
 import CountTimer from "./Timer";
-const ShareLink = React.lazy(() => import("./Share"));
 import { Link } from "react-router-dom";
+const ShareElement = React.lazy(() => import("./shareOptions"));
 const Sessions = React.lazy(() => import("./session"));
 
-
-
-
-export default function HelperHeader() {
-  const [snipitName, setSnipitName] = useState('');
+export default function HelperHeader() { 
+  const [snipitName, setSnipitName] = useState("");
   const [snipitsList, setsnipitsList] = useState({});
   const [copied, setCopied] = useState(false);
   const [timer, setTimer] = useState(false);
@@ -76,35 +77,26 @@ export default function HelperHeader() {
   const currentSession = useSelector(
     (state: RootState) => state.compilerSlice.session
   );
-  let code = useSelector((state: RootState) => state.compilerSlice.code[currentLanguage]);
-  const editorTheme = useSelector((state: RootState) => state.compilerSlice.theme);
-  const editorConfig = useSelector((state: RootState) => state.editorSlice)
+  let code = useSelector(
+    (state: RootState) => state.compilerSlice.code[currentLanguage]
+  );
+  const editorTheme = useSelector(
+    (state: RootState) => state.compilerSlice.theme
+  );
+  const editorConfig = useSelector((state: RootState) => state.editorSlice);
   const { theme, setTheme } = useTheme();
-
-
-
-
 
   const handleDownload = () => {
     let codeBlob = new Blob([code]);
     let url = URL.createObjectURL(codeBlob);
-    let a = document.createElement('a');
+    let a = document.createElement("a");
     a.href = url;
-    a.setAttribute('download', `${currentLanguage}-Plumber${mapExtension(currentLanguage)}`);
-    a.click()
-  }
-
-  const handleShare = () => {
-    const shareData = {
-      title: "Code Plumber",
-      text: code
-    };
-    if (navigator.share) {
-      navigator.share(shareData);
-    } else {
-      toast.error("Sharing Not avalible in your browser!!")
-    }
-  }
+    a.setAttribute(
+      "download",
+      `${currentLanguage}-Plumber${mapExtension(currentLanguage)}`
+    );
+    a.click();
+  };
 
   let copyId: NodeJS.Timeout;
   const handleCopy = () => {
@@ -113,77 +105,106 @@ export default function HelperHeader() {
     clearTimeout(copyId);
     copyId = setTimeout(() => {
       setCopied(false);
-    }, 5000)
-  }
-
-
-
-
+    }, 5000);
+  };
 
   //Snipit
   const handleSnipitAdd = () => {
-    let snipits = localStorage.getItem('snipits');
+    let snipits = localStorage.getItem("snipits");
     let parsedSnipits: { [key: string]: string } = {};
     if (snipits) {
       parsedSnipits = JSON.parse(snipits);
     }
-    parsedSnipits[snipitName || 'default'] = code;
+    parsedSnipits[snipitName || "default"] = code;
     setsnipitsList(parsedSnipits);
-    localStorage.setItem('snipits', JSON.stringify(parsedSnipits));
+    localStorage.setItem("snipits", JSON.stringify(parsedSnipits));
     toast.success("Snipit Added Successfully");
-    setSnipitName('');
-  }
+    setSnipitName("");
+  };
 
   const removeSnipit = (snipit: string) => {
-    let snipits = localStorage.getItem('snipits');
+    let snipits = localStorage.getItem("snipits");
     if (snipits) {
       let parsedSnipits = JSON.parse(snipits);
       delete parsedSnipits[snipit];
       setsnipitsList(parsedSnipits);
-      localStorage.setItem('snipits', JSON.stringify(parsedSnipits));
+      localStorage.setItem("snipits", JSON.stringify(parsedSnipits));
     }
-  }
+  };
 
   const loadSnipitCode = React.useCallback((value: string) => {
     dispatch(updateCodeValue(value));
-    localStorage.setItem(`currentCode-${currentLanguage}-${currentSession}`, value);
+    localStorage.setItem(
+      `currentCode-${currentLanguage}-${currentSession}`,
+      value
+    );
   }, []);
-
-
-
 
   //UI Menu
   const changeFontSize = (value: string) => {
-    dispatch(updateTheme(['fontSize', value]))
-  }
+    dispatch(updateTheme(["fontSize", value]));
+  };
   const changeTheme = (value: Theme) => {
-    setTheme(value as Theme)
-  }
+    setTheme(value as Theme);
+  };
   const handleExpendEditor = () => {
-    dispatch(updateEditorConfig({ type: 'style', session: currentSession, value: { type: 'expendEditor', value: !editorConfig.style.expendEditor } }));
-  }
+    dispatch(
+      updateEditorConfig({
+        type: "style",
+        session: currentSession,
+        value: {
+          type: "expendEditor",
+          value: !editorConfig.style.expendEditor,
+        },
+      })
+    );
+  };
   const handleMachineChange = (value: string) => {
-    dispatch(updateEditorConfig({ type: 'machine', session: currentSession, value }));
+    dispatch(
+      updateEditorConfig({ type: "machine", session: currentSession, value })
+    );
     setTimeout(() => {
       location.reload();
     }, 1000);
-  }
-
+  };
 
   //Load intial Configs
   useEffect(() => {
-    let snipits = localStorage.getItem('snipits');
+    let snipits = localStorage.getItem("snipits");
     if (snipits) {
       setsnipitsList(JSON.parse(snipits));
     }
-  }, [])
+  }, []);
 
   const handleAutoComplete = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'autoComplete', session: currentSession, value }));
-  }
+    dispatch(
+      updateEditorConfig({
+        type: "autoComplete",
+        session: currentSession,
+        value,
+      })
+    );
+  };
   const handleTerminalChange = (value: boolean) => {
-    dispatch(updateEditorConfig({ type: 'terminal', session: currentSession, value }));
-  }
+    dispatch(
+      updateEditorConfig({ type: "terminal", session: currentSession, value })
+    );
+  };
+
+  const shareButton = useMemo(
+    () => (
+      <TooltipTrigger asChild>
+        <Button
+          className="flex justify-center items-center gap-1 dark:text-gray-800 text-white"
+          variant="success"
+          size="icon"
+        >
+          <Send size={18} />
+        </Button>
+      </TooltipTrigger>
+    ),
+    []
+  );
 
   return (
     <div className="__helper_header h-[50px] bg-gray-200 dark:bg-gray-800 border-2 border-b-0 text-gray-800 dark:text-white p-2 flex justify-between items-center">
@@ -197,7 +218,9 @@ export default function HelperHeader() {
                     className="flex justify-center items-center gap-1"
                     variant="secondary"
                     size="icon"
-                  ><Settings size={18} /></Button>
+                  >
+                    <Settings size={18} />
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
                   <p>Settings</p>
@@ -207,108 +230,195 @@ export default function HelperHeader() {
           </PopoverTrigger>
           <PopoverContent className="bg-gray-100 dark:bg-gray-900">
             <hr />
-            <p className="text-gray-500 text text-xs w-max ml-4 -translate-y-[9px] backdrop-blur-xl">Settings</p>
+            <p className="text-gray-500 text text-xs w-max ml-4 -translate-y-[9px] backdrop-blur-xl">
+              Settings
+            </p>
             <div className="mb-4">
               <DropdownMenu>
-                <p className="flex items-center justify-between cursor-pointer my-1"><span>Font Size </span>
-                  <DropdownMenuTrigger asChild>
-                    <span className="flex" ><ChevronRight size={15} className="inline" /></span>
-                  </DropdownMenuTrigger>
-                </p>
-                <DropdownMenuContent className="w-56 bg-gray-100 dark:bg-gray-900">
+                <DropdownMenuTrigger asChild>
+                  <p className="flex items-center justify-between cursor-pointer my-1">
+                    <span>Font Size </span>
+                    <span className="flex">
+                      <ChevronRight size={15} className="inline" />
+                    </span>
+                  </p>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 ml-64 bg-gray-100 dark:bg-gray-900"
+                >
                   <DropdownMenuLabel>Select Font Size</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup onValueChange={(value) => changeFontSize(value)} value={editorTheme.fontSize}>
-                    <DropdownMenuRadioItem value="xs">Small</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="sm">Normal</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="xl">Large</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="2xl">Extra Large</DropdownMenuRadioItem>
+                  <DropdownMenuRadioGroup
+                    onValueChange={(value) => changeFontSize(value)}
+                    value={editorTheme.fontSize}
+                  >
+                    <DropdownMenuRadioItem value="xs">
+                      Small
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="sm">
+                      Normal
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="xl">
+                      Large
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="2xl">
+                      Extra Large
+                    </DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             <div className="mb-4">
               <DropdownMenu>
-                <p className="flex items-center justify-between cursor-pointer my-1">
-                  <span>Themes <span className="text-gray-500 text-sm">({theme.split('-').join(' ')})</span></span>
-                  <DropdownMenuTrigger asChild>
-                    <span className="flex" ><ChevronRight size={15} className="inline" /></span>
-                  </DropdownMenuTrigger>
-                </p>
-                <DropdownMenuContent className="w-56 bg-gray-100 dark:bg-gray-900">
+                <DropdownMenuTrigger asChild>
+                  <p className="flex items-center justify-between cursor-pointer my-1">
+                    <span>
+                      Themes{" "}
+                      <span className="text-gray-500 text-sm">
+                        ({theme.split("-").join(" ")})
+                      </span>
+                    </span>
+                    <span className="flex">
+                      <ChevronRight size={15} className="inline" />
+                    </span>
+                  </p>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 ml-64 bg-gray-100 dark:bg-gray-900"
+                >
                   <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup onValueChange={(value) => changeTheme(value as Theme)} value={theme}>
-                    {
-                      Object.entries(ThemeMaper).map(theme => {
-                        return (
-                          <DropdownMenuRadioItem value={theme[0]}>{theme[0].split('-').join(' ')}</DropdownMenuRadioItem>
-                        )
-                      })
-                    }
+                  <DropdownMenuRadioGroup
+                    onValueChange={(value) => changeTheme(value as Theme)}
+                    value={theme}
+                  >
+                    {Object.entries(ThemeMaper).map((theme) => {
+                      return (
+                        <DropdownMenuRadioItem value={theme[0]}>
+                          {theme[0].split("-").join(" ")}
+                        </DropdownMenuRadioItem>
+                      );
+                    })}
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             <div className="mb-4">
               <DropdownMenu>
-                <p className="flex items-center justify-between cursor-pointer my-1"><span>Machine </span>
-                  <DropdownMenuTrigger asChild>
-                    <span className="flex" ><ChevronRight size={15} className="inline" /></span>
-                  </DropdownMenuTrigger>
-                </p>
-                <DropdownMenuContent className="w-56 bg-gray-100 dark:bg-gray-900">
+                <DropdownMenuTrigger asChild>
+                  <p className="flex items-center justify-between cursor-pointer my-1">
+                    <span>Machine </span>
+                    <span className="flex">
+                      <ChevronRight size={15} className="inline" />
+                    </span>
+                  </p>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 ml-64 bg-gray-100 dark:bg-gray-900"
+                >
                   <DropdownMenuLabel>Select Exec Machine</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup value={editorConfig.machine} onValueChange={handleMachineChange}>
-                    <DropdownMenuRadioItem value="server">Server</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="local">Local Machine</DropdownMenuRadioItem>
+                  <DropdownMenuRadioGroup
+                    value={editorConfig.machine}
+                    onValueChange={handleMachineChange}
+                  >
+                    <DropdownMenuRadioItem value="server">
+                      Server
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="local">
+                      Local Machine
+                    </DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             <div className="mb-4">
+              <Link to="/compiler/receive">
+                <div className="flex items-center justify-between space-x-2">
+                  Fetch Code
+                </div>
+              </Link>
+            </div>
+            <div className="mb-4">
               <div className="flex items-center justify-between space-x-2">
-                <Link to="/compiler/receive">Fetch Code</Link>
+                <Label htmlFor="autoSuggestion" className="text-sm">
+                  Auto Suggetions
+                </Label>
+                <Switch
+                  className={
+                    !editorConfig.autoComplete ? "dark:bg-gray-600" : ""
+                  }
+                  checked={editorConfig.autoComplete}
+                  onCheckedChange={handleAutoComplete}
+                  id="autoSuggestion"
+                />
               </div>
             </div>
             <div className="mb-4">
               <div className="flex items-center justify-between space-x-2">
-                <Label htmlFor="autoSuggestion" className="text-sm">Auto Suggetions</Label>
-                <Switch className={!editorConfig.autoComplete ? "dark:bg-gray-600" : ''} checked={editorConfig.autoComplete} onCheckedChange={handleAutoComplete} id="autoSuggestion" />
-              </div>
-            </div>
-            <div className="mb-4">
-              <div className="flex items-center justify-between space-x-2">
-                <Label htmlFor="terminal" className="font-normal">Terminal</Label>
-                <Switch className={!editorConfig.terminal ? "dark:bg-gray-600" : ''} checked={editorConfig.terminal} onCheckedChange={handleTerminalChange} id="terminal" />
+                <Label htmlFor="terminal" className="font-normal">
+                  Terminal
+                </Label>
+                <Switch
+                  className={!editorConfig.terminal ? "dark:bg-gray-600" : ""}
+                  checked={editorConfig.terminal}
+                  onCheckedChange={handleTerminalChange}
+                  id="terminal"
+                />
               </div>
             </div>
             <hr className="mt-8" />
-            <p className="text-gray-500 text-xs w-max ml-4 -translate-y-[9px] backdrop-blur-xl">Custom Snipits</p>
+            <p className="text-gray-500 text-xs w-max ml-4 -translate-y-[9px] backdrop-blur-xl">
+              Custom Snipits
+            </p>
             <div className="mb-8">
               <p className="mb-2 text-gray-400">Add Current Code as Snipit</p>
               <div className="flex w-full max-w-sm items-center space-x-2">
-                <Input onChange={(e) => setSnipitName(e.target.value)} type="text" placeholder="Snipit Name" />
-                <Button onClick={handleSnipitAdd} type="submit">ADD</Button>
+                <Input
+                  onChange={(e) => setSnipitName(e.target.value)}
+                  type="text"
+                  placeholder="Snipit Name"
+                />
+                <Button onClick={handleSnipitAdd} type="submit">
+                  ADD
+                </Button>
               </div>
             </div>
             <hr />
-            <p className="text-gray-500 text-xs w-max ml-4 -translate-y-[9px] backdrop-blur-xl">Snipits</p>
+            <p className="text-gray-500 text-xs w-max ml-4 -translate-y-[9px] backdrop-blur-xl">
+              Snipits
+            </p>
             <div>
-              {Object.entries(snipitsList).length ?
+              {Object.entries(snipitsList).length ? (
                 Object.entries(snipitsList).map((snipit, index) => {
                   return (
-                    <p className="flex items-center justify-between cursor-pointer my-1" key={index}>
-                      <span onClick={() => loadSnipitCode(snipit[1] as string)}>{snipit[0]} </span>
-                      <span className="flex" onClick={() => { removeSnipit(snipit[0]) }}>
+                    <p
+                      className="flex items-center justify-between cursor-pointer my-1"
+                      key={index}
+                    >
+                      <span onClick={() => loadSnipitCode(snipit[1] as string)}>
+                        {snipit[0]}{" "}
+                      </span>
+                      <span
+                        className="flex"
+                        onClick={() => {
+                          removeSnipit(snipit[0]);
+                        }}
+                      >
                         <Trash2 size={15} className="text-red-500 inline" />
                       </span>
                     </p>
-                  )
-                }) :
-                <p className="text-gray-400 text-center justify-between cursor-pointer my-1"> No Snipits Found!</p>
-              }
+                  );
+                })
+              ) : (
+                <p className="text-gray-400 text-center justify-between cursor-pointer my-1">
+                  {" "}
+                  No Snipits Found!
+                </p>
+              )}
             </div>
           </PopoverContent>
         </Popover>
@@ -320,7 +430,9 @@ export default function HelperHeader() {
                 className="flex justify-center items-center gap-1 dark:text-gray-800 text-white "
                 variant="success"
                 size="icon"
-              ><Download size={18} /></Button>
+              >
+                <Download size={18} />
+              </Button>
             </TooltipTrigger>
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
               <p>Download</p>
@@ -329,33 +441,11 @@ export default function HelperHeader() {
         </TooltipProvider>
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Popover>
-                <PopoverTrigger>
-                  <Button
-                    className="flex justify-center items-center gap-1 dark:text-gray-800 text-white"
-                    variant="success"
-                    size="icon"
-                  ><Send size={18} /></Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-max bg-gray-100 dark:bg-gray-900 border-2 border-b-0 text-gray-800 dark:text-white border-none">
-                  <div>
-                    <ErrorBoundary>
-                      <Suspense fallback={<Loader />}>
-                        <ShareLink>
-                          <div className="relative flex cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground hover:dark:bg-gray-800 hover:bg-gray-300">
-                            Share Link
-                          </div>
-                        </ShareLink>
-                      </Suspense>
-                    </ErrorBoundary>
-                    <div onClick={handleShare} className="relative flex cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground hover:dark:bg-gray-800 hover:bg-gray-300">
-                      External Share
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </TooltipTrigger>
+            <ErrorBoundary>
+              <Suspense fallback={<Loader />}>
+                <ShareElement code={code}>{shareButton}</ShareElement>
+              </Suspense>
+            </ErrorBoundary>
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
               <p>Share</p>
             </TooltipContent>
@@ -369,12 +459,11 @@ export default function HelperHeader() {
                 variant="success"
                 size="icon"
               >
-                {
-                  copied ?
-                    <ClipboardCheck size={18} />
-                    :
-                    <Copy onClick={handleCopy} size={18} />
-                }
+                {copied ? (
+                  <ClipboardCheck size={18} />
+                ) : (
+                  <Copy onClick={handleCopy} size={18} />
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
@@ -390,55 +479,52 @@ export default function HelperHeader() {
                 variant="success"
                 size="icon"
               >
-                {
-                  timer ?
-                    <StopCircle onClick={() => setTimer(false)} size={24} />
-                    :
-                    <Timer onClick={() => setTimer(true)} size={22} />
-                }
+                {timer ? (
+                  <StopCircle onClick={() => setTimer(false)} size={24} />
+                ) : (
+                  <Timer onClick={() => setTimer(true)} size={22} />
+                )}
               </Button>
             </TooltipTrigger>
-            {
-              timer &&
-              <div className="bg-gray-600 flex items-center px-4 -translate-x-2 z-0" style={{ borderRadius: "0 5px 5px 0" }}>
+            {timer && (
+              <div
+                className="bg-gray-600 flex items-center px-4 -translate-x-2 z-0"
+                style={{ borderRadius: "0 5px 5px 0" }}
+              >
                 <CountTimer />
               </div>
-            }
+            )}
             <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
-              {
-                timer ?
-                  <p>Stop</p>
-                  :
-                  <p>Timer</p>
-              }
+              {timer ? <p>Stop</p> : <p>Timer</p>}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
       <div className="__tab_switcher flex justify-center items-center gap-1">
         <small className="hidden sm:block">Language: </small>
-        {
-          (['html', 'css', 'javascript'].includes(currentLanguage)) ?
-            < Select
-              defaultValue={currentLanguage}
-              onValueChange={(value) =>
-                dispatch(
-                  updateCurrentLanguage(
-                    value as CompilerSliceStateType["currentLanguage"]
-                  )
+        {["html", "css", "javascript"].includes(currentLanguage) ? (
+          <Select
+            defaultValue={currentLanguage}
+            onValueChange={(value) =>
+              dispatch(
+                updateCurrentLanguage(
+                  value as CompilerSliceStateType["currentLanguage"]
                 )
-              }
-            >
-              <SelectTrigger className="w-[120px] bg-gray-50 dark:bg-gray-700 outline-none focus:ring-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="html">HTML</SelectItem>
-                <SelectItem value="css">CSS</SelectItem>
-                <SelectItem value="javascript">JavaScript</SelectItem>
-              </SelectContent>
-            </Select> : <p className="uppercase font-bold">{currentLanguage}</p>
-        }
+              )
+            }
+          >
+            <SelectTrigger className="w-[120px] bg-gray-50 dark:bg-gray-700 outline-none focus:ring-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="html">HTML</SelectItem>
+              <SelectItem value="css">CSS</SelectItem>
+              <SelectItem value="javascript">JavaScript</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <p className="uppercase font-bold">{currentLanguage}</p>
+        )}
         <div className="ml-2">
           <TooltipProvider>
             <Tooltip>
@@ -446,7 +532,9 @@ export default function HelperHeader() {
                 <Suspense fallback={<Loader />}>
                   <ErrorBoundary>
                     <Sessions>
-                      <Button size="icon" variant="secondary"><AppWindow /></Button>
+                      <Button size="icon" variant="secondary">
+                        <AppWindow />
+                      </Button>
                     </Sessions>
                   </ErrorBoundary>
                 </Suspense>
@@ -461,31 +549,47 @@ export default function HelperHeader() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon" variant="secondary" onClick={handleExpendEditor}>{
-                  editorConfig.style.expendEditor ? <ChevronLeft size={20} /> : <ChevronsLeftRight size={20} />
-                }</Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={handleExpendEditor}
+                >
+                  {editorConfig.style.expendEditor ? (
+                    <ChevronLeft size={20} />
+                  ) : (
+                    <ChevronsLeftRight size={20} />
+                  )}
+                </Button>
               </TooltipTrigger>
               <TooltipContent className=" bg-gray-50 text-gray-800 dark:bg-gray-600 dark:text-white">
-                {editorConfig.style.expendEditor ?
+                {editorConfig.style.expendEditor ? (
                   <p>Open Console</p>
-                  :
+                ) : (
                   <p>Expend Editor</p>
-                }
+                )}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
       </div>
-    </div >
+    </div>
   );
 }
 
-
-const extensionMapper: string[][] = [['c', '.c'], ['cpp', '.cpp'], ['html', '.html'], ['css', '.css'], ['javascript', '.js'], ['python', '.py'], ['java', '.java']];
+const extensionMapper: string[][] = [
+  ["c", ".c"],
+  ["cpp", ".cpp"],
+  ["html", ".html"],
+  ["css", ".css"],
+  ["javascript", ".js"],
+  ["python", ".py"],
+  ["java", ".java"],
+];
 
 const mapExtension = (lang: string): string => {
   for (let i = 0; i < extensionMapper.length; i++) {
-    if ((extensionMapper[i][0] as string) === lang) return extensionMapper[i][1];
+    if ((extensionMapper[i][0] as string) === lang)
+      return extensionMapper[i][1];
   }
-  return '.txt';
-}
+  return ".txt";
+};

@@ -228,7 +228,7 @@ export default function Compiler() {
     };
   }, [compiledFilePath]);
 
-  const formateCode = () => {
+  const formateCode = () =>{ 
     if (["cpp", "c", "javascript", "java"].includes(currentLanguage)) {
       let formattedCode = formatCppCode(code);
       if (code !== formattedCode) {

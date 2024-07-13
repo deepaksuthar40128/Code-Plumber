@@ -26,12 +26,13 @@ export default function ShareLink({ children }: { children: React.ReactElement }
     const [shareableLink, setShareableLink] = useState<string>("");
     const [upload, { isLoading }] = useUploadCodeMutation();
     const [copied, setCopied] = useState<boolean>(false);
+    const [codeId,setCodeId] = useState<number>(0);
     const handleUpload = async () => {
         try {
             setStart(true);
             let res = await upload({ language: data.currentLanguage, code: data.code[data.currentLanguage], message }).unwrap();
-            if (res.success) {
-                console.log(res);
+            if (res.success) { 
+                setCodeId(res.codeId)
                 setShareableLink(`https://code-plumber.vercel.app/compiler/receive?id=${res.codeId}`)
             }
             else {
@@ -64,6 +65,7 @@ export default function ShareLink({ children }: { children: React.ReactElement }
                     ?
                     (
                         shareableLink.length ?
+                        <>
                             <div className="flex items-center space-x-2">
                                 <div className="grid flex-1 gap-2">
                                     <Label htmlFor="link" className="sr-only">
@@ -89,6 +91,12 @@ export default function ShareLink({ children }: { children: React.ReactElement }
 
                                 }
                             </div>
+                            <p className="text-center text-gray-300">Or</p>
+                            <div className="flex items-center">
+                            <span className="w-1/3">Code Id: </span>
+                            <Input type="number"  value={codeId} readOnly  />  
+                            </div>
+                            </>
                             :
                             (
                                 isLoading ?
