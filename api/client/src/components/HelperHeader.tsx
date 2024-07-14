@@ -441,7 +441,7 @@ export default function HelperHeader() {
         <TooltipProvider>
           <Tooltip>
             <ErrorBoundary>
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<div className="flex items-center px-2"><Loader /></div>}>
                 <ShareElement code={code}>{shareButton}</ShareElement>
               </Suspense>
             </ErrorBoundary>
