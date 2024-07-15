@@ -1,4 +1,4 @@
-const CACHE_NAME = 'code-plumber-1.1.4';
+const CACHE_NAME = 'code-plumber-1.1.5';
 
 const staticAssets = [
     '/c.png',

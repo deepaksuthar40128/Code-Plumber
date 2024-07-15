@@ -37,7 +37,7 @@ export default function Header() {
   }, [])
 
   return (
-    <div>
+    <div className="sticky top-0 z-10">
       <div className={`h-max ${status ? 'bg-green-700' : 'bg-red-700'} text-white w-dvw absolute text-center text-sm py-1 ${showStatus ? 'top-0' : '-top-8'} transition-all`}>
         {
           status ? 'Back Online' : 'Trying to reconnecting...'
