@@ -1,9 +1,10 @@
 package compilers
 
 import (
-	"bytes"
+	"bytes" 
 	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/deepaksuthar40128/plumber/utils"
@@ -19,33 +20,48 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		utils.RemoveFile(inputf)
 		utils.RemoveFile(execFile)
 	}()
+
+	
 	cmd := exec.Command("g++", "-o", execFile.Name(), "./"+f.Name())
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
+	var compileStderr bytes.Buffer
+	cmd.Stderr = &compileStderr
 
 	if err := cmd.Run(); err != nil {
 		return utils.OutgoingDataType{
 			Success:    true,
 			Error:      true,
 			Message:    "Compilation error",
-			Data:       stderr.String(),
+			Data:       compileStderr.String(),
 			Time:       0,
 			StatusCode: 200,
 		}
 	}
+
 	inputf.Close()
 	inputf, err := os.Open(inputf.Name())
 	if err != nil {
 		panic("Error opening input file")
 	}
+ 
+	execFileAbsPath, err := filepath.Abs(execFile.Name())
+	if err != nil {
+		panic("Error getting absolute path for executable file")
+	}
+	inputfAbsPath, err := filepath.Abs(inputf.Name())
+	if err != nil {
+		panic("Error getting absolute path for input file")
+	} 
 
-	cmd = exec.Command(execFile.Name())
-	cmd.Stdin = inputf
+
+	dockerCmd := exec.Command("docker", "run", "--rm",
+		"-v", execFileAbsPath+":/app/output",
+		"-v", inputfAbsPath+":/app/input",
+		"gcc:latest", "sh", "-c", "/app/output < /app/input")
 
 	var stdout, stderrOutput bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderrOutput
+	dockerCmd.Stdout = &stdout
+	dockerCmd.Stderr = &stderrOutput
 
 	outputChannel := make(chan utils.OutgoingDataType)
 
@@ -53,8 +69,9 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
 			startTime := time.Now()
-			if err := cmd.Run(); err != nil {
-				outputChannel <- utils.OutgoingDataType{
+
+			if err := dockerCmd.Run(); err != nil {
+				nchannel <- utils.OutgoingDataType{
 					Success:    true,
 					Error:      true,
 					Message:    "Runtime error",
@@ -64,6 +81,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 				}
 				return
 			}
+
 			nchannel <- utils.OutgoingDataType{
 				Success:    true,
 				Error:      false,
@@ -86,7 +104,9 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 				Time:       1000,
 				StatusCode: 200,
 			}
-			cmd.Process.Kill()
+			if dockerCmd.Process != nil {
+				dockerCmd.Process.Kill()
+			}
 		}
 	}()
 
