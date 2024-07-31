@@ -1,7 +1,8 @@
 package compilers
 
 import (
-	"bytes" 
+	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -71,6 +72,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 			startTime := time.Now()
 
 			if err := dockerCmd.Run(); err != nil {
+				fmt.Println(err)
 				nchannel <- utils.OutgoingDataType{
 					Success:    true,
 					Error:      true,
