@@ -2,6 +2,7 @@ package compilers
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -16,54 +17,74 @@ func PYCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		utils.RemoveFile(f)
 		utils.RemoveFile(inputf)
 	}()
-	cmd := exec.Command("python3", f.Name())
-	var stdout bytes.Buffer
-	cmd.Stderr = &stdout
-	cmd.Stdout = &stdout
+
+	
 	inputf.Close()
 	inputf, err := os.Open(inputf.Name())
 	if err != nil {
-		panic("Error during reopening input file")
+		panic("Error reopening input file")
 	}
-	cmd.Stdin = inputf
-	output := make(chan utils.OutgoingDataType)
+
+	pyFileName := utils.FileNameExtractor(f)
+	inputFileName := utils.FileNameExtractor(inputf)
+
+	
+	dockerCmd := exec.Command("docker", "run", "--rm", "--privileged",
+		"-v", "/root/abc/Code-Plumber/runEnv/code/python/"+pyFileName+":/app/output",
+		"-v", "/root/abc/Code-Plumber/runEnv/input/"+inputFileName+":/app/input",
+		"python:3", "sh", "-c", "python3 /app/output < /app/input")
+
+	var stdout, stderrOutput bytes.Buffer
+	dockerCmd.Stdout = &stdout
+	dockerCmd.Stderr = &stderrOutput
+
+	outputChannel := make(chan utils.OutgoingDataType)
+
 	go func() {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
 			startTime := time.Now()
-			if err := cmd.Run(); err != nil {
+			if err := dockerCmd.Run(); err != nil {
+				fmt.Println(err)
 				nchannel <- utils.OutgoingDataType{
 					Success:    true,
 					Error:      true,
-					Message:    "Execution Terminated Due to Some Error",
-					Data:       utils.BufferOverflowCheck(&stdout),
-					Time:       0,
+					Message:    "Runtime error",
+					Data:       stderrOutput.String(),
+					Time:       int(time.Since(startTime) / 1e6), 
 					StatusCode: 200,
 				}
+				return
 			}
+
 			nchannel <- utils.OutgoingDataType{
 				Success:    true,
 				Error:      false,
 				Message:    "Run successfully",
 				Data:       utils.BufferOverflowCheck(&stdout),
-				Time:       int(time.Since(startTime) / 1e6),
+				Time:       int(time.Since(startTime) / 1e6),  
 				StatusCode: 200,
 			}
 		}()
+
 		select {
 		case res := <-nchannel:
-			output <- res
-		case <-time.After(2 * time.Second):
-			output <- utils.OutgoingDataType{
+			outputChannel <- res
+		case <-time.After(3 * time.Second):
+			outputChannel <- utils.OutgoingDataType{
 				Success:    true,
 				Error:      true,
 				Message:    "Time Limit Exceeded",
 				Data:       utils.BufferOverflowCheck(&stdout),
-				Time:       2000,
+				Time:       3000, 
 				StatusCode: 200,
 			}
-			cmd.Process.Kill()
+			if dockerCmd.Process != nil {
+				dockerCmd.Process.Kill()
+			}
 		}
 	}()
-	return <-output
+
+	output := <-outputChannel
+	return output
 }

@@ -6,7 +6,7 @@ const cppCompiler = (file: string): Promise<CompileResult> => {
   return new Promise((resolve, reject) => {
     try {
       const executableFileName = path.resolve(
-        path.resolve() + "/runEnv/exe/" + fileNameGenrator() + ".exe"
+        path.resolve() + "/runEnv/exe/" + fileNameGenrator() + ".out"
       );
       (fs.createWriteStream(executableFileName)).close();
       exec(`g++ -o ${executableFileName} ${file} `, (error, stdout, stderr) => {

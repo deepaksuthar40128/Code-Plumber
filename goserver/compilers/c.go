@@ -2,15 +2,16 @@ package compilers
 
 import (
 	"bytes"
+	"fmt"
 	"os"
-	"os/exec"
+	"os/exec" 
 	"time"
-
 	"github.com/deepaksuthar40128/plumber/utils"
 )
 
 func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
-	execFile := utils.CustomFileMaker(".out")
+	execFile := utils.CustomFileMaker(".out") 
+
 	defer func() {
 		f.Close()
 		inputf.Close()
@@ -19,31 +20,42 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		utils.RemoveFile(inputf)
 		utils.RemoveFile(execFile)
 	}()
-	cmd := exec.Command("gcc", "-o", execFile.Name(), "./"+f.Name())
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
+
+	
+	cmd := exec.Command("g++", "-o", execFile.Name(), "./"+f.Name())
+	exec.Command("chmod", "+x", execFile.Name()).Run()
+
+	var compileStderr bytes.Buffer
+	cmd.Stderr = &compileStderr
+
 	if err := cmd.Run(); err != nil {
 		return utils.OutgoingDataType{
 			Success:    true,
 			Error:      true,
 			Message:    "Compilation error",
-			Data:       stderr.String(),
+			Data:       compileStderr.String(),
 			Time:       0,
 			StatusCode: 200,
 		}
 	}
+
 	inputf.Close()
 	inputf, err := os.Open(inputf.Name())
 	if err != nil {
-		panic("Error during reopening of file!")
+		panic("Error opening input file")
 	}
 
-	cmd = exec.Command(execFile.Name())
-	cmd.Stdin = inputf
+	exeFileName:=utils.FileNameExtractor(execFile)
+	inputFileName:=utils.FileNameExtractor(inputf)
+
+	dockerCmd := exec.Command("docker", "run", "--rm", "--privileged",
+		"-v", "/root/abc/Code-Plumber/runEnv/exe/"+exeFileName+":/app/output",
+		"-v", "/root/abc/Code-Plumber/runEnv/input/"+inputFileName+":/app/input",
+		"gcc:latest", "sh", "-c", "/app/output < /app/input")
 
 	var stdout, stderrOutput bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderrOutput
+	dockerCmd.Stdout = &stdout
+	dockerCmd.Stderr = &stderrOutput
 
 	outputChannel := make(chan utils.OutgoingDataType)
 
@@ -51,8 +63,9 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
 			startTime := time.Now()
-			if err := cmd.Run(); err != nil {
-				outputChannel <- utils.OutgoingDataType{
+			if err := dockerCmd.Run(); err != nil {
+				fmt.Println(err)
+				nchannel <- utils.OutgoingDataType{
 					Success:    true,
 					Error:      true,
 					Message:    "Runtime error",
@@ -62,6 +75,7 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 				}
 				return
 			}
+
 			nchannel <- utils.OutgoingDataType{
 				Success:    true,
 				Error:      false,
@@ -75,21 +89,22 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		select {
 		case res := <-nchannel:
 			outputChannel <- res
-		case <-time.After(time.Second):
+		case <-time.After(3*time.Second):
 			outputChannel <- utils.OutgoingDataType{
 				Success:    true,
 				Error:      true,
 				Message:    "Time Limit Exceeded",
 				Data:       utils.BufferOverflowCheck(&stdout),
-				Time:       1000,
+				Time:       3000,
 				StatusCode: 200,
 			}
-			cmd.Process.Kill()
+			if dockerCmd.Process != nil {
+				dockerCmd.Process.Kill()
+			}
 		}
 	}()
 
 	output := <-outputChannel
 
 	return output
-
 }

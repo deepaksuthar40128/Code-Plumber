@@ -19,7 +19,7 @@ const server = net.createServer(socket => {
 });
   
 server.listen(4330, () => {
-    console.log('Server started on port 4330');
+    console.log('Redeploy server started on port 4330');
 });
 
 

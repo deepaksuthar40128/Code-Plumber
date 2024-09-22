@@ -30,7 +30,7 @@ export const compileCode = (data: RequestData): Promise<CompileResult> => {
   return new Promise((resolve, reject) => {
     try {
       const { code, language } = data;
-      const codeFileName = path.resolve(path.resolve() + '/runEnv/code/' + fileNameGenrator() + extensionMapper(language));
+      const codeFileName = path.resolve(path.resolve() + '/runEnv/code/'+data.language+'/' + fileNameGenrator() + extensionMapper(language));
       let wsCode = fs.createWriteStream(codeFileName);
 
       wsCode.write(code);

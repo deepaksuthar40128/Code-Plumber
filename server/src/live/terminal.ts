@@ -1,8 +1,8 @@
 import { Server, Socket } from "socket.io";
 import fs from 'node:fs'
-import { spawn } from 'node:child_process'
-import { DefaultEventsMap } from "socket.io/dist/typed-events";
-import { rpcServer } from "..";
+import { spawn } from 'node:child_process' 
+import { rpcServer } from ".."; 
+import process from 'node:process'
 
 type incomingData = {
     type: "Socket",
@@ -19,6 +19,7 @@ type processDBType = {
 
 const processDB: processDBType = {}
 const outputs: { [key: string]: string } = {};
+const hostpath = process.env.HOSTPATH || '/';
 
 export const handleSocket = (data: incomingData) => {
     if (data.event === 'initiate') {
@@ -65,7 +66,16 @@ function emitMessage(socketId: string, msz: string, event: string) {
 
 const handleFileExec = (data: incomingData) => {
     let rdata = JSON.parse(data.data)
-    let process = spawn(rdata.file);
+    let fileName = (rdata.file as string).split('/').pop();
+    const process = spawn('docker', [
+        'run',
+        '-i',
+        '--rm',
+        '--privileged',
+        '-v', hostpath+'/Code-Plumber/runEnv/exe/'+fileName+':/app/output',
+        'gcc:latest',
+        'sh', '-c', '/app/output'
+      ]); 
     processDB[data.socketId] = process;
     outputs[data.socketId] = '';
     emitMessage(data.socketId, '', 'ignore');

@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
+	"os/exec" 
 	"time"
-
 	"github.com/deepaksuthar40128/plumber/utils"
 )
 
 func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
-	execFile := utils.CustomFileMaker(".out")
+	execFile := utils.CustomFileMaker(".out") 
+
 	defer func() {
 		f.Close()
 		inputf.Close()
@@ -24,6 +23,7 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 
 	
 	cmd := exec.Command("g++", "-o", execFile.Name(), "./"+f.Name())
+	exec.Command("chmod", "+x", execFile.Name()).Run()
 
 	var compileStderr bytes.Buffer
 	cmd.Stderr = &compileStderr
@@ -44,20 +44,14 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	if err != nil {
 		panic("Error opening input file")
 	}
- 
-	execFileAbsPath, err := filepath.Abs(execFile.Name())
-	if err != nil {
-		panic("Error getting absolute path for executable file")
-	}
-	inputfAbsPath, err := filepath.Abs(inputf.Name())
-	if err != nil {
-		panic("Error getting absolute path for input file")
-	} 
 
+	exeFileName:=utils.FileNameExtractor(execFile)
+	inputFileName:=utils.FileNameExtractor(inputf)
+	hostpath:=os.Getenv("HOSTPATH")
 
-	dockerCmd := exec.Command("docker", "run", "--rm",
-		"-v", execFileAbsPath+":/app/output",
-		"-v", inputfAbsPath+":/app/input",
+	dockerCmd := exec.Command("docker", "run", "--rm", "--privileged",
+		"-v", hostpath+"/Code-Plumber/runEnv/exe/"+exeFileName+":/app/output",
+		"-v", hostpath+"/Code-Plumber/runEnv/input/"+inputFileName+":/app/input",
 		"gcc:latest", "sh", "-c", "/app/output < /app/input")
 
 	var stdout, stderrOutput bytes.Buffer
@@ -70,7 +64,6 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
 			startTime := time.Now()
-
 			if err := dockerCmd.Run(); err != nil {
 				fmt.Println(err)
 				nchannel <- utils.OutgoingDataType{
@@ -97,13 +90,13 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 		select {
 		case res := <-nchannel:
 			outputChannel <- res
-		case <-time.After(time.Second):
+		case <-time.After(3*time.Second):
 			outputChannel <- utils.OutgoingDataType{
 				Success:    true,
 				Error:      true,
 				Message:    "Time Limit Exceeded",
 				Data:       utils.BufferOverflowCheck(&stdout),
-				Time:       1000,
+				Time:       3000,
 				StatusCode: 200,
 			}
 			if dockerCmd.Process != nil {

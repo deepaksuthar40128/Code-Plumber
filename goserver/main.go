@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	// serverAddr := "127.0.0.1:4555"
 	serverAddr := "api-service:4555"
 
 	conn, err := net.Dial("tcp", serverAddr)

@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -106,4 +107,10 @@ func BufferOverflowCheck(stdout *bytes.Buffer) string{
 		runs = runs[:5000]
 		return string(runs)+"........\n\n Buffer Overflow"
 	} 
+}
+
+
+func FileNameExtractor(f *os.File) string{
+	parts:=strings.Split(f.Name(),"/");
+	return parts[len(parts)-1]
 }

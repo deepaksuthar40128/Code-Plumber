@@ -5,8 +5,8 @@ services:
     image: postgres:latest
     container_name: postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: deepak
+      POSTGRES_USER: ${DBUSER}
+      POSTGRES_PASSWORD: ${DBPASSWORD}
       POSTGRES_DB: plumber 
     ports:
       - "5432:5432"
@@ -35,6 +35,13 @@ services:
       - plumber
     depends_on:
       - api 
+    volumes:
+      - ${UNIXSOCKETADDR}:/var/run/docker.sock
+      - ${DOCKERBIN}:/usr/bin/docker
+      - ${HOSTPATH}/Code-Plumber/runEnv:/app/runEnv
+    environment:
+      HOSTPATH: ${HOSTPATH}
+
 
   goserver1:
     build:
@@ -45,6 +52,12 @@ services:
       - plumber
     depends_on:
       - api 
+    volumes:
+      - ${UNIXSOCKETADDR}:/var/run/docker.sock
+      - ${DOCKERBIN}:/usr/bin/docker
+      - ${HOSTPATH}/Code-Plumber/runEnv:/app/runEnv
+    environment:
+      HOSTPATH: ${HOSTPATH}
 
   goserver2:
     build:
@@ -57,7 +70,7 @@ services:
       - api
       - postgres
     environment:
-      DATABASE_URL: postgresql://postgres:deepak@postgres:5432/plumber?sslmode=disable
+      DATABASE_URL: ${DBURL}
 
 networks:
   plumber:
