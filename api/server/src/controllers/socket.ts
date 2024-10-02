@@ -1,6 +1,4 @@
-import { Server, Socket } from "socket.io";
-import fs from 'node:fs'
-import { spawn } from 'node:child_process'
+import { Server, Socket } from "socket.io"; 
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Services } from "./rpc";
 
@@ -21,28 +19,56 @@ export const ioFunction = (io: Server<DefaultEventsMap, DefaultEventsMap, Defaul
 }
 
 function putData(data: string, event: string, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) {
-    Services.map(service => {
-        if (service.type === "Node") {
-            service.Socket.write(JSON.stringify({
+    if(event=='initiate'){
+        let allotedService = Services.getService('Node');
+        if(allotedService){
+            Services.addSocketService(socket.id,allotedService);
+            allotedService.Socket.write(JSON.stringify({
                 type: "Socket",
                 event,
                 socketId: socket.id,
                 data
             }))
         }
-    })
+        else
+            socket.disconnect();
+    }
+    else if(event=='disconnect'){
+        let allotedService =  Services.getPreAllocatedService(socket.id);
+        if(allotedService){
+            allotedService.Socket.write(JSON.stringify({
+                type: "Socket",
+                event,
+                socketId: socket.id,
+                data
+            }))
+            Services.unallocateService(socket.id);
+        }
+        else 
+            socket.disconnect();
+    }
+    else{
+        let allotedService =  Services.getPreAllocatedService(socket.id);
+        if(allotedService){
+            allotedService.Socket.write(JSON.stringify({
+                type: "Socket",
+                event,
+                socketId: socket.id,
+                data
+            }))
+        }
+        else 
+            socket.disconnect();
+    }
 }
 
 export function handleSocketEvents(rawData: string) {
     let data = JSON.parse(rawData); 
     if (data.event === 'disconnect') {
+        Services.unallocateService(data.socketId);
         sockets[data.socketId].disconnect();
     }
-    else if (data.event === 'ignore') {
-        sockets[data.socketId].emit('data',data.data);
-    }
-    else if (data.event === 'data') {
-        
+    else if (data.event === 'ignore' || data.event === 'data') {
         sockets[data.socketId].emit('data',data.data);
     }
 }

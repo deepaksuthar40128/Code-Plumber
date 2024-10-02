@@ -1,19 +1,24 @@
 import net from "node:net"
 import { Responses } from "../routes/route";
 import { handleSocketEvents } from "./socket";
-type Service = {
+import { Store } from "./serviceStore";
+export type Service = {
     type: "Go1" | "Node" | "Go2",
+    serviceId:string,
     Socket: net.Socket
 };
-export const Services: Service[] = [];
+let go1max = +(process.env.GO1 as string) || 1;
+let go2max = +(process.env.GO2 as string) || 1;
+let Nodemax = +(process.env.NODE1  as string) || 1;
+let maxService = {
+    "Go1": go1max as number,
+    "Go2":go2max as number,
+    "Node":Nodemax as number
+}
+export const Services = new Store(['Go1','Go2','Node'],maxService);
 const server = net.createServer(socket => {
     socket.on('close', () => {
-        let ind = Services.findIndex(s=>{
-            return s.Socket.closed;
-        })
-        if(ind!=-1){
-            Services.splice(ind,1);
-        }
+        Services.removeClosedServices();
     }) 
     let output = '';
     socket.on('data', (msz) => {
@@ -30,14 +35,16 @@ const server = net.createServer(socket => {
  
 
 function handleSocketData(rawData: string, socket: net.Socket) {
-    let data = JSON.parse(rawData);
+    let data = JSON.parse(rawData); 
     if (data) {
         if (data.type === 'Startup') {
             console.log("New client connected: ",data.service);
-            Services.push({
+            let Service = {
                 type: data.service,
-                Socket: socket
-            })
+                Socket: socket,
+                serviceId:randomIdGen()
+            };
+            Services.addService(Service);
         }
         else if (data.type === 'result') {
             if (typeof (data.data) === 'string') data.data = JSON.parse(data.data)
@@ -61,6 +68,13 @@ function handleSocketData(rawData: string, socket: net.Socket) {
 }
 
 
-server.listen(4555, () => {
-    console.log("Servecies started at 4555");
+const PORT = process.env.tcpPort || 4556
+
+server.listen(PORT, () => {
+    console.log("Servecies started at "+PORT);
 })
+
+
+function randomIdGen():string{
+    return `${Date.now()}-${(Math.floor(Math.random()*1000000+1000000))}`;
+}

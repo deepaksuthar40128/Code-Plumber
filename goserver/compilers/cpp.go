@@ -22,9 +22,8 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	}()
 
 	
-	cmd := exec.Command("g++", "-o", execFile.Name(), "./"+f.Name())
-	exec.Command("chmod", "+x", execFile.Name()).Run()
-
+	cmd := exec.Command("g++", "-o", execFile.Name(), "./"+f.Name()) 
+	
 	var compileStderr bytes.Buffer
 	cmd.Stderr = &compileStderr
 
@@ -46,13 +45,10 @@ func CppCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	}
 
 	exeFileName:=utils.FileNameExtractor(execFile)
-	inputFileName:=utils.FileNameExtractor(inputf)
-	hostpath:=os.Getenv("HOSTPATH")
-
-	dockerCmd := exec.Command("docker", "run", "--rm", "--privileged",
-		"-v", hostpath+"/Code-Plumber/runEnv/exe/"+exeFileName+":/app/output",
-		"-v", hostpath+"/Code-Plumber/runEnv/input/"+inputFileName+":/app/input",
-		"gcc:latest", "sh", "-c", "/app/output < /app/input")
+	inputFileName:=utils.FileNameExtractor(inputf) 
+	cppContainerId:=os.Getenv("cppContaienrId")
+	// cppContainerId:="20a" 
+	dockerCmd := exec.Command("docker", "exec", cppContainerId, "sh", "-c", "runEnv/"+exeFileName+" < runEnv/"+inputFileName)
 
 	var stdout, stderrOutput bytes.Buffer
 	dockerCmd.Stdout = &stdout

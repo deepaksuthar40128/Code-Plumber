@@ -78,7 +78,8 @@ app.get('*', (req: Request, res: Response) => {
 })
 
 
+const PORT = process.env.httpPort || 4321
 
-server.listen(4320, () => {
-    console.log("http://localhost:4320");
+server.listen(PORT, () => {
+    console.log("http://localhost:"+PORT);
 });

@@ -27,14 +27,11 @@ func JAVACompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 
 	classFileName := utils.FileNameExtractor(f)
 	inputFileName := utils.FileNameExtractor(inputf)
+	javaContainerId:=os.Getenv("javaContainerId")
+	// javaContainerId:="bbe"
 
 	
-	dockerCmd := exec.Command("docker", "run", "--rm", "--privileged",
-		"-v", "/root/abc/Code-Plumber/runEnv/code/java/"+classFileName+":/app/main.java",
-		"-v", "/root/abc/Code-Plumber/runEnv/input/"+inputFileName+":/app/input",
-		"openjdk:latest", "sh", "-c", "java /app/main.java < /app/input")
-
-
+	dockerCmd := exec.Command("docker", "exec", javaContainerId ,"sh","-c","java runEnv/"+classFileName+" < runEnv/"+inputFileName);
 
 	var stdout, stderrOutput bytes.Buffer
 	dockerCmd.Stdout = &stdout
@@ -45,7 +42,7 @@ func JAVACompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	go func() {
 		nchannel := make(chan utils.OutgoingDataType)
 		go func() {
-			startTime := time.Now()
+			startTime := time.Now() 
 			if err := dockerCmd.Run(); err != nil {
 				fmt.Println(err)
 				nchannel <- utils.OutgoingDataType{

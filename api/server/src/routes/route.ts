@@ -11,73 +11,78 @@ const IDGenrator = () => {
 }
 
 app.post('/run', (req: Request, res: Response) => {
-    const data = req.body;
-    let reqId = IDGenrator();
-    Services.map(service => {
-        if (service.type === "Go1") {
-            console.log("Writing to go service")
-            service.Socket.write(JSON.stringify({
-                type: "Run",
-                id: reqId,
-                data
-            }))
-            Responses[reqId] = res;
-        }
-    })
+    let allotedService = Services.getService("Go1");
+    if(allotedService){
+        const data = req.body;
+        let reqId = IDGenrator();
+        allotedService.Socket.write(JSON.stringify({
+            type: "Run",
+            id: reqId,
+            data
+        }))
+        Responses[reqId] = res;
+    }
+    else
+        res.send({success:false,msz:"No service Avalible"});
 })
 
 app.post('/compile', (req: Request, res: Response) => {
-    const data = req.body;
-    let reqId = IDGenrator();
-    Services.map(service => {
-        if (service.type === "Node") {
-            service.Socket.write(JSON.stringify({
-                type: "Compile",
-                id: reqId,
-                data
-            }))
-            Responses[reqId] = res;
-        }
-    })
+    let allotedService = Services.getService("Node");
+    if(allotedService){
+        const data = req.body;
+        let reqId = IDGenrator(); 
+        allotedService.Socket.write(JSON.stringify({
+            type: "Compile",
+            id: reqId,
+            data
+        }))
+        Responses[reqId] = res;
+    }
+    else
+        res.send({success:false,msz:"No service Avalible"});
 })
 
 
 app.post('/upload', (req: Request, res: Response) => {
-    const data = req.body;
-    let reqId = IDGenrator();
-    Services.map(service => {
-        if (service.type === "Go2") {
-            service.Socket.write(JSON.stringify({
-                type: "Upload",
-                id: reqId,
-                data
-            }))
-            Responses[reqId] = res;
-        }
-    })
+    let allotedService = Services.getService("Go2");
+    if(allotedService){
+        const data = req.body;
+        let reqId = IDGenrator(); 
+        allotedService.Socket.write(JSON.stringify({
+            type: "Upload",
+            id: reqId,
+            data
+        }))
+        Responses[reqId] = res;
+    }
+    else
+        res.send({success:false,msz:"No service Avalible"});
 })
 
 
 app.get('/fetch/:id', (req: Request, res: Response) => {
-    let reqId = IDGenrator();
-    Services.map(service => {
-        if (service.type === "Go2") {
-            service.Socket.write(JSON.stringify({
-                type: "Fetch",
-                id: reqId,
-                data: {
-                    codeId: req.params.id
-                }
-            }))
-            Responses[reqId] = res;
-        }
-    })
+    let allotedService = Services.getService("Go2");
+    if(allotedService){
+        let reqId = IDGenrator(); 
+        allotedService.Socket.write(JSON.stringify({
+            type: "Fetch",
+            id: reqId,
+            data: {
+                codeId: req.params.id
+            }
+        }))
+        Responses[reqId] = res;
+    }
+    else
+        res.send({success:false,msz:"No service Avalible"});
 })
 
 app.get('/list-services',(req:Request,res:Response)=>{
-    let services:string[];
-    services = Services.map(s=>s.type)
-    res.send(services)
+    res.send(Services.serviceList());
+})
+
+app.get('/list-active-socket-services',(req:Request,res:Response)=>{
+    res.send(Services.activeSocketServices());
 })
 
 export default app;

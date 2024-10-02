@@ -59,7 +59,7 @@ func FilterInput(input *string) {
 
 func FileMaker(data IncomingDataType) (*os.File, *os.File) {
 	fileName := fmt.Sprint(rand.Int()) + fmt.Sprint(time.Now().UTC().UnixNano()) + "-Main" + ExtensionMapper(data.Language)
-	f, err := os.Create("runEnv/code/" + data.Language + "/" + fileName)
+	f, err := os.Create("runEnv/" + fileName)
 	if err != nil {
 		fmt.Println(err)
 		panic(fmt.Sprintf("Error during creating file %v", fileName))
@@ -68,7 +68,7 @@ func FileMaker(data IncomingDataType) (*os.File, *os.File) {
 	f.Write([]byte(data.Code))
 
 	InputFileName := fmt.Sprint(rand.Int()) + fmt.Sprint(time.Now().UTC().UnixNano()) + "-input.txt"
-	inputf, err := os.Create("runEnv/input/" + InputFileName)
+	inputf, err := os.Create("runEnv/"+ InputFileName)
 	if err != nil {
 		panic("Error during creating input file")
 	}
@@ -79,7 +79,7 @@ func FileMaker(data IncomingDataType) (*os.File, *os.File) {
 
 func CustomFileMaker(fileType string) *os.File {
 	fileName := fmt.Sprint(rand.Int()) + fmt.Sprint(time.Now().UTC().UnixNano()) + "-Exe" + fileType
-	f, err := os.Create("runEnv/exe/" + fileName)
+	f, err := os.Create("runEnv/" + fileName)
 	if err != nil {
 		panic("Error during creating executable file!")
 	}

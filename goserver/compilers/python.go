@@ -27,12 +27,11 @@ func PYCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 
 	pyFileName := utils.FileNameExtractor(f)
 	inputFileName := utils.FileNameExtractor(inputf)
-
+	pyContainerId:=os.Getenv("pyContainerId") 
+	// fmt.Println("Hello")
+	// pyContainerId:="01c"
 	
-	dockerCmd := exec.Command("docker", "run", "--rm", "--privileged",
-		"-v", "/root/abc/Code-Plumber/runEnv/code/python/"+pyFileName+":/app/output",
-		"-v", "/root/abc/Code-Plumber/runEnv/input/"+inputFileName+":/app/input",
-		"python:3", "sh", "-c", "python3 /app/output < /app/input")
+	dockerCmd := exec.Command("docker", "exec", pyContainerId, "sh", "-c", "python3 runEnv/"+pyFileName+" < runEnv/"+inputFileName)
 
 	var stdout, stderrOutput bytes.Buffer
 	dockerCmd.Stdout = &stdout

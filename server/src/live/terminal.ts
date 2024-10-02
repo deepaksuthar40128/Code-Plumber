@@ -1,7 +1,6 @@
-import { Server, Socket } from "socket.io";
 import fs from 'node:fs'
 import { spawn } from 'node:child_process' 
-import { rpcServer } from ".."; 
+import { rpcSocket } from ".."; 
 import process from 'node:process'
 
 type incomingData = {
@@ -19,7 +18,7 @@ type processDBType = {
 
 const processDB: processDBType = {}
 const outputs: { [key: string]: string } = {};
-const hostpath = process.env.HOSTPATH || '/';
+const cppLiveContainerID = process.env.cppLiveContainerID || '';
 
 export const handleSocket = (data: incomingData) => {
     if (data.event === 'initiate') {
@@ -52,7 +51,7 @@ export const handleSocket = (data: incomingData) => {
 
 function socketSend(msz: string) {
     msz += '$end$'
-    rpcServer.write(msz);
+    rpcSocket.write(msz);
 }
 
 
@@ -66,15 +65,11 @@ function emitMessage(socketId: string, msz: string, event: string) {
 
 const handleFileExec = (data: incomingData) => {
     let rdata = JSON.parse(data.data)
-    let fileName = (rdata.file as string).split('/').pop();
+    let fileName = (rdata.file as string).split('/').pop(); 
     const process = spawn('docker', [
-        'run',
-        '-i',
-        '--rm',
-        '--privileged',
-        '-v', hostpath+'/Code-Plumber/runEnv/exe/'+fileName+':/app/output',
-        'gcc:latest',
-        'sh', '-c', '/app/output'
+        'exec', '-i', 
+        cppLiveContainerID,
+        'sh', '-c', 'runEnv/'+fileName
       ]); 
     processDB[data.socketId] = process;
     outputs[data.socketId] = '';

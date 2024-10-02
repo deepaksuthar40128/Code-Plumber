@@ -7,10 +7,7 @@ RUN apt-get install -y nodejs
 
 WORKDIR /app
 
-COPY . .
-EXPOSE 4320
-EXPOSE 4330
-EXPOSE 4555
+COPY . . 
 
 RUN tr -d '\r' < build.sh > build_unix.sh
 RUN mv build_unix.sh build.sh

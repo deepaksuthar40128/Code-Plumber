@@ -21,6 +21,6 @@ COPY wait-for-it.sh .
 RUN chmod +x ./wait-for-it.sh
 
 # Set the entry point
-ENTRYPOINT [ "./wait-for-it.sh","-t","1200","api-service:4320","--"]
+ENTRYPOINT [ "./wait-for-it.sh","-t","1200","nginx:4555","--"]
 
 CMD [ "npm","start" ]

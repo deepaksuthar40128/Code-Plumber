@@ -30,20 +30,18 @@ Online IDE is a web-based integrated development environment (IDE) that supports
 - **React 18**: Frontend JavaScript library for building user interfaces.
 - **Tailwind CSS**: Utility-first CSS framework for styling and shadch ui.
 
-## Installation
+## Docker Setup
 
 To run this project locally, follow these steps:
 
 1. Clone this repository.
 2. Navigate to the project directory.
-3. Navigate to `client`
-4. Install dependencies using `npm install`.
-5. Start the development server using `npm run dev`.
-6. Navigate to `server`
-7. Install dependencies using `npm install`.
-8. Start the development server using `npm run dev`.
-9. Access the IDE in your browser at `http://localhost:5173`.
-10. Before executing code on IDE set Execution machine to `Local` in `setting->machine`.
+3. Change .env file
+4. Update `HOSTADDR` to address absolute address to your project dir and project dir sholud be named as `Code-Plumber`
+5. Change docker.sock(Unix socket) address file and docket bin file address
+6. Change `DBUSER` and `DBPASSWORD`.
+7. Compose up using `docker-compose up --build`
+8. Navigate to `http://localhost:5420`
 
 
 ## Contributing

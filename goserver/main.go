@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/deepaksuthar40128/plumber/controller"
 	"github.com/deepaksuthar40128/plumber/utils"
@@ -11,53 +12,72 @@ import (
 
 func main() {
 	// serverAddr := "127.0.0.1:4555"
-	serverAddr := "api-service:4555"
+	serverAddr := "nginx:4555"
+	// serverAddr := "api-service:4555"
 
+	for { 
+		conn, err := connectToServer(serverAddr)
+		if err != nil {
+			fmt.Println("Error connecting to server:", err, "Retrying in 10 seconds...")
+			time.Sleep(10 * time.Second)
+			continue 
+		}
+ 
+		err = handleConnection(conn)
+		if err != nil {
+			fmt.Println("Connection lost. Retrying in 10 seconds...")
+			time.Sleep(10 * time.Second)
+		}
+	}
+}
+ 
+func connectToServer(serverAddr string) (net.Conn, error) {
 	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
-		fmt.Println("Error connecting to server:", err)
-		return
+		return nil, err
 	}
-	defer conn.Close()
-
 	fmt.Println("Connected to server on", serverAddr)
-
+	return conn, nil
+}
+ 
+func handleConnection(conn net.Conn) error {
+	defer conn.Close()
+ 
 	startupMsg := map[string]string{"type": "Startup", "service": "Go1"}
-	err = sendJSONMessage(conn, startupMsg)
+	err := sendJSONMessage(conn, startupMsg)
 	if err != nil {
-		fmt.Println("Error sending startup message:", err)
-		return
+		return fmt.Errorf("error sending startup message: %v", err)
 	}
-
-	// Listen for incoming messages
+ 
 	for {
 		var msg map[string]interface{}
 		err := receiveJSONMessage(conn, &msg)
 		if err != nil {
 			fmt.Println("Error receiving message:", err)
-			return
-		} 
+			return err 
+		}
 
 		if msg["type"] == "Run" {
 			dataMap := msg["data"].(map[string]interface{})
-			incomingdata := utils.IncomingDataType{
+			incomingData := utils.IncomingDataType{
 				Code:     dataMap["code"].(string),
 				Input:    dataMap["input"].(string),
 				Language: dataMap["language"].(string),
 			}
+ 
 			response := map[string]interface{}{
 				"type": "result",
 				"id":   msg["id"],
-				"data": controller.Compiler(incomingdata),
+				"data": controller.Compiler(incomingData),
 			}
 			err := sendJSONMessage(conn, response)
 			if err != nil {
-				fmt.Println("Error sending response:", err)
-				return
+				return fmt.Errorf("error sending response: %v", err)
 			}
 		}
 	}
 }
+
 func sendJSONMessage(conn net.Conn, msg interface{}) error {
 	jsonData, err := json.Marshal(msg)
 	if err != nil {

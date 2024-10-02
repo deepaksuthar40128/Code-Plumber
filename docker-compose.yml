@@ -7,73 +7,160 @@ services:
     environment:
       POSTGRES_USER: ${DBUSER}
       POSTGRES_PASSWORD: ${DBPASSWORD}
-      POSTGRES_DB: plumber 
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: plumber  
     networks:
-      - plumber
+      - plumber2
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  api:
+  api-1:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: api-service
-    ports:
-      - "4321:4320"
-      - "4330:4330" 
+    container_name: api-service-1
     networks:
-      - plumber
+      - plumber2
+    environment:
+      - tcpPort=4556
+      - httpPort=4321
+      - GO1=1
+      - GO2=1
+      - NODE1=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4321 || exit 1"]
+      interval: 50s
+      timeout: 5s
+      retries: 50
 
-  nodeserver:
+  api-2:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api-service-2
+    networks:
+      - plumber2
+    environment:
+      - tcpPort=4557
+      - httpPort=4322
+      - GO1=1
+      - GO2=1
+      - NODE1=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4322 || exit 1"]
+      interval: 50s
+      timeout: 5s
+      retries: 50
+
+  api-3:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api-service-3
+    networks:
+      - plumber2
+    environment:
+      - tcpPort=4558
+      - httpPort=4323
+      - GO1=1
+      - GO2=1
+      - NODE1=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4323 || exit 1"]
+      interval: 50s
+      timeout: 5s
+      retries: 50
+
+  api-4:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api-service-4
+    networks:
+      - plumber2
+    environment:
+      - tcpPort=4559
+      - httpPort=4324
+      - GO1=1
+      - GO2=1
+      - NODE1=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4324 || exit 1"]
+      interval: 50s
+      timeout: 5s
+      retries: 50
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "4310:4320"
+    networks:
+      - plumber2
+    depends_on:
+      api-1:
+        condition: service_healthy
+      api-2:
+        condition: service_healthy
+      api-3:
+        condition: service_healthy
+      api-4:
+        condition: service_healthy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
+  nodeserver2:
     build:
       context: ./server
-      dockerfile: Dockerfile
-    container_name: nodeServer
+      dockerfile: Dockerfile 
     networks:
-      - plumber
+      - plumber2
     depends_on:
-      - api 
+      - nginx
     volumes:
       - ${UNIXSOCKETADDR}:/var/run/docker.sock
       - ${DOCKERBIN}:/usr/bin/docker
       - ${HOSTPATH}/Code-Plumber/runEnv:/app/runEnv
     environment:
-      HOSTPATH: ${HOSTPATH}
+      cppLiveContainerID: ${cppLiveContainerID}
+    deploy:
+      replicas: 4
 
-
-  goserver1:
+  goserver12:
     build:
       context: ./goserver
-      dockerfile: Dockerfile
-    container_name: goserver1
+      dockerfile: Dockerfile 
     networks:
-      - plumber
+      - plumber2
     depends_on:
-      - api 
+      - nginx
     volumes:
       - ${UNIXSOCKETADDR}:/var/run/docker.sock
       - ${DOCKERBIN}:/usr/bin/docker
       - ${HOSTPATH}/Code-Plumber/runEnv:/app/runEnv
     environment:
-      HOSTPATH: ${HOSTPATH}
+      cContaienrId: ${cContaienrId}
+      cppContaienrId: ${cppContaienrId}
+      javaContainerId: ${javaContainerId}
+      pyContainerId: ${pyContainerId}
+    deploy:
+      replicas: 4
 
-  goserver2:
+  goserver22:
     build:
       context: ./shareServer
-      dockerfile: Dockerfile
-    container_name: goserver2
+      dockerfile: Dockerfile 
     networks:
-      - plumber
+      - plumber2
     depends_on:
-      - api
+      - nginx
       - postgres
     environment:
       DATABASE_URL: ${DBURL}
+    deploy:
+      replicas: 4
 
 networks:
-  plumber:
+  plumber2:
 
 volumes:
   postgres_data:

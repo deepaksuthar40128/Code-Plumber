@@ -48,10 +48,9 @@ func CCompiler(f *os.File, inputf *os.File) utils.OutgoingDataType {
 	exeFileName:=utils.FileNameExtractor(execFile)
 	inputFileName:=utils.FileNameExtractor(inputf)
 
-	dockerCmd := exec.Command("docker", "run", "--rm", "--privileged",
-		"-v", "/root/abc/Code-Plumber/runEnv/exe/"+exeFileName+":/app/output",
-		"-v", "/root/abc/Code-Plumber/runEnv/input/"+inputFileName+":/app/input",
-		"gcc:latest", "sh", "-c", "/app/output < /app/input")
+	cContainerId:=os.Getenv("cContaienrId")
+	// cContainerId:="20a" 
+	dockerCmd := exec.Command("docker", "exec", cContainerId, "sh", "-c", "runEnv/"+exeFileName+" < runEnv/"+inputFileName)
 
 	var stdout, stderrOutput bytes.Buffer
 	dockerCmd.Stdout = &stdout

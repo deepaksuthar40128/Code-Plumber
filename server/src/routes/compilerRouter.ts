@@ -5,7 +5,7 @@ export interface RequestData {
     language: string,
     code: string
 }
-export const Maneger = (data: RequestData) => {
+export const Maneger = (data: RequestData):Promise<{[key:string]:string|number|boolean}> => {
     return new Promise((resolve, reject) => {
         const { language, code }: RequestData = data;
         if (!code || !code.length || !language.length) {
